@@ -17,6 +17,9 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
             --c-panel: rgba(10, 12, 20, 0.95);
         }
 
+        /* 基础配置：配合 JS 动态调整 html 的 font-size，实现全局 UI 完美等比缩放 */
+        html { font-size: 16px; }
+
         body {
             margin: 0; overflow: hidden; background-color: var(--c-bg); color: #fff;
             font-family: 'Rajdhani', 'Noto Sans SC', sans-serif; touch-action: none; user-select: none;
@@ -34,7 +37,7 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
             box-shadow: 0 0 120px rgba(0, 229, 255, 0.15);
             border-left: 1px solid rgba(0, 229, 255, 0.2); 
             border-right: 1px solid rgba(0, 229, 255, 0.2);
-            background: #020205; /* 更深的背景色，凸显星空 */
+            background: #020205; 
         }
 
         h1, h2, h3, .btn, .orbitron { font-family: 'Orbitron', 'Noto Sans SC', sans-serif; }
@@ -57,12 +60,13 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
         }
         .screen.active { display: flex; }
 
+        /* 全面将核心组件的 px 替换为 rem 以适配缩放引擎 */
         .btn {
-            position: relative; background: rgba(0, 229, 255, 0.05); border: 1px solid rgba(0, 229, 255, 0.4);
-            border-left: 4px solid var(--c-primary); color: var(--c-primary);
-            padding: 12px 40px; margin: 8px; font-size: 16px; font-weight: 900; letter-spacing: 2px;
+            position: relative; background: rgba(0, 229, 255, 0.05); border: 0.0625rem solid rgba(0, 229, 255, 0.4);
+            border-left: 0.25rem solid var(--c-primary); color: var(--c-primary);
+            padding: 0.75rem 2.5rem; margin: 0.5rem; font-size: 1rem; font-weight: 900; letter-spacing: 0.125rem;
             cursor: pointer; text-transform: uppercase;
-            clip-path: polygon(15px 0, 100% 0, 100% calc(100% - 15px), calc(100% - 15px) 100%, 0 100%, 0 15px);
+            clip-path: polygon(0.9375rem 0, 100% 0, 100% calc(100% - 0.9375rem), calc(100% - 0.9375rem) 100%, 0 100%, 0 0.9375rem);
             transition: all 0.2s ease;
             box-shadow: 0 0 15px rgba(0, 229, 255, 0.15), inset 0 0 10px rgba(0, 229, 255, 0.1);
             text-shadow: 0 0 5px var(--c-primary);
@@ -79,98 +83,98 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
         }
 
         .grid-box { 
-            display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 15px; 
-            width: 90%; max-width: 1000px; padding: 20px; overflow-y: auto; flex: 1; min-height: 0; margin-bottom: 10px;
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(10.625rem, 1fr)); gap: 0.9375rem; 
+            width: 90%; max-width: 62.5rem; padding: 1.25rem; overflow-y: auto; flex: 1; min-height: 0; margin-bottom: 0.625rem;
         }
         
         .card {
-            background: linear-gradient(145deg, rgba(20,20,30,0.8), rgba(10,10,15,0.9)); border: 1px solid #333;
-            padding: 15px; cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden;
+            background: linear-gradient(145deg, rgba(20,20,30,0.8), rgba(10,10,15,0.9)); border: 0.0625rem solid #333;
+            padding: 0.9375rem; cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden;
             display: flex; flex-direction: column; align-items: center; text-align: center;
         }
         .card.locked { opacity: 0.6; filter: grayscale(0.8); cursor: default; }
         .card.locked::after { display: none; }
         .card:not(.locked)::after {
-            content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 2px;
+            content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 0.125rem;
             background: var(--c-primary); transform: scaleX(0); transition: transform 0.3s;
             box-shadow: 0 0 10px var(--c-primary);
         }
-        .card:not(.locked):hover { transform: translateY(-5px); border-color: #666; box-shadow: 0 10px 40px rgba(0,229,255,0.2); }
+        .card:not(.locked):hover { transform: translateY(-0.3125rem); border-color: #666; box-shadow: 0 10px 40px rgba(0,229,255,0.2); }
         .card:not(.locked):hover::after { transform: scaleX(1); }
-        .card.selected { border: 1px solid var(--c-primary); box-shadow: 0 0 30px rgba(0, 229, 255, 0.3) inset; }
-        .card.limit-break { border: 1px solid #ffcc00; box-shadow: 0 0 15px rgba(255, 204, 0, 0.3); }
-        .card h3 { color: #fff; margin-bottom: 5px; font-size: 1.1rem; text-shadow: 0 0 5px rgba(255,255,255,0.5); }
+        .card.selected { border: 0.0625rem solid var(--c-primary); box-shadow: 0 0 30px rgba(0, 229, 255, 0.3) inset; }
+        .card.limit-break { border: 0.0625rem solid #ffcc00; box-shadow: 0 0 15px rgba(255, 204, 0, 0.3); }
+        .card h3 { color: #fff; margin-bottom: 0.3125rem; font-size: 1.1rem; text-shadow: 0 0 5px rgba(255,255,255,0.5); }
         .card p { color: #aaa; font-size: 0.8rem; line-height: 1.4; }
-        .card-icon { font-size: 2.5rem; margin-bottom: 10px; filter: drop-shadow(0 0 10px currentColor); }
+        .card-icon { font-size: 2.5rem; margin-bottom: 0.625rem; filter: drop-shadow(0 0 10px currentColor); }
 
         @media (max-width: 640px) {
-            #shop-screen, #guide-screen, #ach-screen, #ship-select { justify-content: flex-start; padding-top: 40px; padding-bottom: 10px; }
-            .grid-box { width: 96%; padding: 10px; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(135px, 1fr)); }
-            .card { padding: 10px 5px; }
+            #shop-screen, #guide-screen, #ach-screen, #ship-select { justify-content: flex-start; padding-top: 2.5rem; padding-bottom: 0.625rem; }
+            .grid-box { width: 96%; padding: 0.625rem; gap: 0.5rem; grid-template-columns: repeat(auto-fit, minmax(8.4375rem, 1fr)); }
+            .card { padding: 0.625rem 0.3125rem; }
             #shop-container .card div:first-child { font-size: 0.9rem; }
             #shop-container .card .text-xl { font-size: 1.1rem; }
-            #shop-container .card div:nth-child(2) { font-size: 0.7rem; line-height: 1.2; margin: 4px 0; min-height: 2.4em; }
-            .btn { padding: 10px 25px; font-size: 14px; }
+            #shop-container .card div:nth-child(2) { font-size: 0.7rem; line-height: 1.2; margin: 0.25rem 0; min-height: 2.4em; }
+            .btn { padding: 0.625rem 1.5625rem; font-size: 0.875rem; }
         }
 
-        .ach-item { display: flex; align-items: center; gap: 15px; padding: 15px; background: rgba(255,255,255,0.02); border: 1px solid #222; margin-bottom: 10px; transition: all 0.3s; }
+        .ach-item { display: flex; align-items: center; gap: 0.9375rem; padding: 0.9375rem; background: rgba(255,255,255,0.02); border: 0.0625rem solid #222; margin-bottom: 0.625rem; transition: all 0.3s; }
         .ach-item.unlocked { border-color: var(--c-success); background: linear-gradient(90deg, rgba(0,255,170,0.1), transparent); box-shadow: 0 0 15px rgba(0,255,170,0.1); }
-        .ach-icon { font-size: 24px; width: 40px; text-align: center; filter: drop-shadow(0 0 5px currentColor); }
-        .ach-desc { font-size: 12px; color: #aaa; }
-        .ach-reward { font-size: 12px; color: var(--c-warn); font-family: 'Orbitron'; margin-left: auto; text-shadow: 0 0 5px var(--c-warn); }
+        .ach-icon { font-size: 1.5rem; width: 2.5rem; text-align: center; filter: drop-shadow(0 0 5px currentColor); }
+        .ach-desc { font-size: 0.75rem; color: #aaa; }
+        .ach-reward { font-size: 0.75rem; color: var(--c-warn); font-family: 'Orbitron'; margin-left: auto; text-shadow: 0 0 5px var(--c-warn); }
 
         #hud-layer { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; display: none; }
-        .hud-top { display: flex; justify-content: space-between; align-items: flex-start; padding: 20px; width: 100%; background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%); }
+        .hud-top { display: flex; justify-content: space-between; align-items: flex-start; padding: 1.25rem; width: 100%; background: linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%); }
         .hud-group { display: flex; flex-direction: column; }
-        .hud-label { font-size: 12px; letter-spacing: 2px; color: #888; font-family: 'Orbitron', 'Noto Sans SC'; font-weight: 700; }
-        .hud-val { font-size: 28px; font-weight: 900; font-family: 'Orbitron'; line-height: 1; }
+        .hud-label { font-size: 0.75rem; letter-spacing: 0.125rem; color: #888; font-family: 'Orbitron', 'Noto Sans SC'; font-weight: 700; }
+        .hud-val { font-size: 1.75rem; font-weight: 900; font-family: 'Orbitron'; line-height: 1; }
         
-        #time-bar-c { width: 150px; height: 4px; background: #222; margin-top: 5px; box-shadow: inset 0 0 5px #000; }
+        #time-bar-c { width: 9.375rem; height: 0.25rem; background: #222; margin-top: 0.3125rem; box-shadow: inset 0 0 5px #000; }
         #time-bar-f { height: 100%; background: var(--c-primary); width: 0%; box-shadow: 0 0 10px var(--c-primary); }
 
-        #boss-hud { position: absolute; top: 70px; left: 50%; transform: translateX(-50%); display: none; flex-direction: column; align-items: center; width: 85%; max-width: 500px; z-index: 35; pointer-events: none; }
-        #boss-name { font-family: 'Orbitron'; color: #fff; font-size: 18px; letter-spacing: 3px; font-weight: 900; text-shadow: 0 0 5px #ff0055, 0 0 10px #ff0055, 0 0 20px #ff0055; margin-bottom: 8px; background: rgba(0,0,0,0.7); padding: 4px 15px; border-radius: 4px; border: 1px solid rgba(255,0,85,0.3); }
-        .boss-hp-container { width: 100%; height: 18px; background: rgba(20, 0, 0, 0.9); border: 2px solid #ff0055; transform: skewX(-15deg); position: relative; box-shadow: 0 0 25px rgba(255, 0, 85, 0.4); overflow: hidden; }
+        #boss-hud { position: absolute; top: 4.375rem; left: 50%; transform: translateX(-50%); display: none; flex-direction: column; align-items: center; width: 85%; max-width: 31.25rem; z-index: 35; pointer-events: none; }
+        #boss-name { font-family: 'Orbitron'; color: #fff; font-size: 1.125rem; letter-spacing: 0.1875rem; font-weight: 900; text-shadow: 0 0 5px #ff0055, 0 0 10px #ff0055, 0 0 20px #ff0055; margin-bottom: 0.5rem; background: rgba(0,0,0,0.7); padding: 0.25rem 0.9375rem; border-radius: 0.25rem; border: 0.0625rem solid rgba(255,0,85,0.3); }
+        .boss-hp-container { width: 100%; height: 1.125rem; background: rgba(20, 0, 0, 0.9); border: 0.125rem solid #ff0055; transform: skewX(-15deg); position: relative; box-shadow: 0 0 25px rgba(255, 0, 85, 0.4); overflow: hidden; }
         .boss-hp-fill { height: 100%; background: linear-gradient(90deg, #ff0055, #ffaa00); width: 100%; transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 20px #ff0055; position: relative; }
         .boss-hp-fill::after { content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 50%; background: rgba(255,255,255,0.25); }
-        #boss-hp-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) skewX(15deg); font-size: 11px; color: #fff; font-weight: bold; font-family: monospace; text-shadow: 1px 1px 0 #000, 0 0 5px #fff; z-index: 10; }
+        #boss-hp-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) skewX(15deg); font-size: 0.6875rem; color: #fff; font-weight: bold; font-family: monospace; text-shadow: 1px 1px 0 #000, 0 0 5px #fff; z-index: 10; }
 
-        #player-hud { position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; z-index: 40; }
-        .hp-container { width: 240px; height: 14px; background: #220000; transform: skewX(-20deg); border: 1px solid #ff0055; margin-top: 4px; position: relative; box-shadow: 0 0 15px rgba(255,0,85,0.2); }
+        #player-hud { position: absolute; bottom: 1.25rem; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; z-index: 40; }
+        .hp-container { width: 15rem; height: 0.875rem; background: #220000; transform: skewX(-20deg); border: 0.0625rem solid #ff0055; margin-top: 0.25rem; position: relative; box-shadow: 0 0 15px rgba(255,0,85,0.2); }
         .hp-fill { height: 100%; background: linear-gradient(90deg, #ff0000, #ff5555); width: 100%; transition: width 0.2s; box-shadow: 0 0 15px #ff0000; }
-        .shield-container { width: 240px; height: 8px; background: rgba(0, 50, 50, 0.5); transform: skewX(-20deg); border: 1px solid #00e5ff; margin-bottom: 2px; position: relative; display: none; box-shadow: 0 0 10px rgba(0,229,255,0.2); }
+        .shield-container { width: 15rem; height: 0.5rem; background: rgba(0, 50, 50, 0.5); transform: skewX(-20deg); border: 0.0625rem solid #00e5ff; margin-bottom: 0.125rem; position: relative; display: none; box-shadow: 0 0 10px rgba(0,229,255,0.2); }
         .shield-fill { height: 100%; background: linear-gradient(90deg, #00aaaa, #00e5ff); width: 100%; transition: width 0.2s; box-shadow: 0 0 15px #00e5ff; }
         .shield-fill.charging { background: #555; box-shadow: none; }
         
-        #xp-bar-c { position: absolute; bottom: 0; left: 0; width: 100%; height: 6px; background: #111; z-index: 50; }
+        #xp-bar-c { position: absolute; bottom: 0; left: 0; width: 100%; height: 0.375rem; background: #111; z-index: 50; }
         #xp-bar-f { height: 100%; background: var(--c-primary); width: 0%; box-shadow: 0 0 20px var(--c-primary); transition: width 0.2s; }
 
-        .bomb-container { position: absolute; bottom: 30px; right: 30px; width: 80px; height: 80px; pointer-events: auto; }
-        #bomb-btn { width: 100%; height: 100%; background: radial-gradient(circle, rgba(50,0,0,0.8), #000); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Orbitron', sans-serif; color: #555; font-weight: bold; font-size: 16px; box-shadow: 0 0 10px rgba(0,0,0,0.5); transition: all 0.3s; border: 2px solid #333; }
+        .bomb-container { position: absolute; bottom: 1.875rem; right: 1.875rem; width: 5rem; height: 5rem; pointer-events: auto; }
+        #bomb-btn { width: 100%; height: 100%; background: radial-gradient(circle, rgba(50,0,0,0.8), #000); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Orbitron', sans-serif; color: #555; font-weight: bold; font-size: 1rem; box-shadow: 0 0 10px rgba(0,0,0,0.5); transition: all 0.3s; border: 0.125rem solid #333; }
         #bomb-btn.ready { color: #fff; background: radial-gradient(circle, #ff0055, #550000); box-shadow: 0 0 30px #ff0055; border-color: #ff0055; cursor: pointer; animation: pulse-bomb 1s infinite; text-shadow: 0 0 5px #fff; }
         #bomb-btn.ready:active { transform: scale(0.9); }
-        .bomb-ring { position: absolute; top: -5px; left: -5px; width: 90px; height: 90px; transform: rotate(-90deg); pointer-events: none; }
-        .bomb-ring circle { fill: none; stroke-width: 4; stroke: #222; }
+        .bomb-ring { position: absolute; top: -0.3125rem; left: -0.3125rem; width: 5.625rem; height: 5.625rem; transform: rotate(-90deg); pointer-events: none; }
+        .bomb-ring circle { fill: none; stroke-width: 4px; stroke: #222; }
         .bomb-ring circle.progress { stroke: var(--c-primary); stroke-dasharray: 251; stroke-dashoffset: 251; transition: stroke-dashoffset 0.3s; filter: drop-shadow(0 0 5px var(--c-primary)); }
         @keyframes pulse-bomb { 0% { box-shadow: 0 0 20px #ff0055; } 50% { box-shadow: 0 0 50px #ff0055; } 100% { box-shadow: 0 0 20px #ff0055; } }
 
-        .dmg-text { position: absolute; pointer-events: none; font-weight: 900; font-family: 'Orbitron'; animation: floatUp 0.8s forwards; white-space: nowrap; z-index: 100; }
-        @keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-60px) scale(1.3); opacity: 0; } }
+        .dmg-text { position: absolute; pointer-events: none; font-weight: 900; font-size: 1.25rem; font-family: 'Orbitron'; animation: floatUp 0.8s forwards; white-space: nowrap; z-index: 100; }
+        @keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 1; } 100% { transform: translateY(-3.75rem) scale(1.3); opacity: 0; } }
         
         #warning-overlay { position: absolute; top: 25%; left: 0; width: 100%; text-align: center; pointer-events: none; display: none; z-index: 50; }
-        .warning-text { color: #fff; font-size: 48px; font-weight: 900; letter-spacing: 15px; animation: blink 0.5s infinite; text-shadow: 0 0 10px #ff0055, 0 0 20px #ff0055, 0 0 40px #ff0055; font-family: 'Noto Sans SC', sans-serif;}
+        .warning-text { color: #fff; font-size: 3rem; font-weight: 900; letter-spacing: 0.9375rem; animation: blink 0.5s infinite; text-shadow: 0 0 10px #ff0055, 0 0 20px #ff0055, 0 0 40px #ff0055; font-family: 'Noto Sans SC', sans-serif;}
         @keyframes blink { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(1.05); } 100% { opacity: 1; transform: scale(1); } }
 
-        .tab-nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-bottom: 16px; }
-        .tab-btn { padding: 8px 16px; border-bottom: 2px solid transparent; color: #666; cursor: pointer; font-weight: 700; transition: 0.2s;}
+        .tab-nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.5rem; margin-bottom: 1rem; }
+        .tab-btn { padding: 0.5rem 1rem; border-bottom: 0.125rem solid transparent; color: #666; cursor: pointer; font-weight: 700; transition: 0.2s;}
         .tab-btn.active { color: var(--c-primary); border-color: var(--c-primary); text-shadow: 0 0 10px var(--c-primary); }
 
-        #unlock-notify { position: absolute; bottom: 100px; left: 50%; transform: translateX(-50%); background: rgba(0, 255, 170, 0.9); color: #000; border: 2px solid #fff; padding: 12px 40px; font-weight: 900; border-radius: 4px; box-shadow: 0 0 30px rgba(0,255,170,0.8); display: none; animation: slideUp 0.5s; z-index: 100; }
-        @keyframes slideUp { from { transform: translate(-50%, 50px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+        #unlock-notify { position: absolute; bottom: 6.25rem; left: 50%; transform: translateX(-50%); background: rgba(0, 255, 170, 0.9); color: #000; border: 0.125rem solid #fff; padding: 0.75rem 2.5rem; font-weight: 900; border-radius: 0.25rem; box-shadow: 0 0 30px rgba(0,255,170,0.8); display: none; animation: slideUp 0.5s; z-index: 100; }
+        @keyframes slideUp { from { transform: translate(-50%, 3.125rem); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
 
-        #game-settings-btn { position: absolute; bottom: 30px; left: 30px; width: 40px; height: 40px; background: rgba(0,0,0,0.5); border: 1px solid rgba(0,229,255,0.4); border-radius: 50%; font-size: 20px; color: var(--c-primary); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 20; pointer-events: auto; transition: all 0.2s; box-shadow: 0 0 10px rgba(0,229,255,0.2); }
+        #game-settings-btn { position: absolute; bottom: 1.875rem; left: 1.875rem; width: 2.5rem; height: 2.5rem; background: rgba(0,0,0,0.5); border: 0.0625rem solid rgba(0,229,255,0.4); border-radius: 50%; font-size: 1.25rem; color: var(--c-primary); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 20; pointer-events: auto; transition: all 0.2s; box-shadow: 0 0 10px rgba(0,229,255,0.2); }
         #game-settings-btn:hover { background: var(--c-primary); color: #000; box-shadow: 0 0 20px var(--c-primary); }
-        .setting-row { display: flex; justify-content: space-between; width: 100%; max-width: 300px; margin-bottom: 15px; color: #aaa; border-bottom: 1px solid #333; padding-bottom: 5px; font-weight: bold;}
+        .setting-row { display: flex; justify-content: space-between; width: 100%; max-width: 18.75rem; margin-bottom: 0.9375rem; color: #aaa; border-bottom: 0.0625rem solid #333; padding-bottom: 0.3125rem; font-weight: bold;}
     </style>
 </head>
 <body>
@@ -187,7 +191,7 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
         
         <p class="text-xs text-gray-400 mb-10 font-mono tracking-widest border-t border-b border-cyan-900/50 py-2 w-64 text-center bg-black/30">系统 V2.5 // 神明再临</p>
 
-        <div class="flex flex-col items-center w-full max-sm gap-4 relative z-10">
+        <div class="flex flex-col items-center w-full max-w-sm gap-4 relative z-10">
             <button id="btn-start-mission" class="btn w-full flex justify-between items-center group" onclick="checkRunAndLaunch()" data-text="btn_launch" onmouseenter="AudioSys.play('ui_hover')">
                 <span>开始任务</span> <span class="text-xs opacity-50 group-hover:translate-x-1 transition">>>></span>
             </button>
@@ -214,13 +218,12 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
     <div id="ship-select" class="screen">
         <h2 class="text-3xl neon-text-primary mb-4 mt-6 orbitron tracking-widest shrink-0" data-text="title_deploy">部署准备</h2>
         
-        <!-- 新增：独立的机型详情展示区，支持过长滚动 -->
-        <div class="w-[90%] max-w-3xl shrink-0 mb-2 p-3 bg-black/60 border border-cyan-900/50 rounded-lg shadow-[0_0_15px_rgba(0,229,255,0.1)] flex flex-col items-center justify-center min-h-[90px] max-h-[140px] overflow-y-auto">
+        <!-- 独立的机型详情展示区，支持过长滚动 -->
+        <div class="w-[90%] max-w-3xl shrink-0 mb-2 p-3 bg-black/60 border border-cyan-900/50 rounded-lg shadow-[0_0_15px_rgba(0,229,255,0.1)] flex flex-col items-center justify-center min-h-[5.625rem] max-h-[8.75rem] overflow-y-auto">
             <div id="selected-ship-info" class="text-center w-full"></div>
         </div>
 
-        <!-- 调整了卡片网格的边距和高度，让出空间给详情面板 -->
-        <div class="grid-box flex-1 mb-2" id="ship-container" style="padding: 10px 20px;"></div>
+        <div class="grid-box flex-1 mb-2" id="ship-container" style="padding: 0.625rem 1.25rem;"></div>
         
         <div class="w-full shrink-0 bg-black/90 p-4 sm:p-6 border-t border-cyan-900/50 backdrop-blur-xl shadow-[0_-10px_30px_rgba(0,229,255,0.1)]">
             <div class="flex flex-col items-center gap-2 mb-4">
@@ -271,7 +274,7 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
         </div>
         
         <div class="bomb-container" onclick="triggerBombUI()">
-            <svg class="bomb-ring"><circle class="progress" r="40" cx="45" cy="45" id="bomb-progress"></circle></svg>
+            <svg class="bomb-ring" viewBox="0 0 90 90"><circle class="progress" r="40" cx="45" cy="45" id="bomb-progress"></circle></svg>
             <div id="bomb-btn">清屏</div>
         </div>
     </div>
@@ -288,9 +291,12 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
     <div id="settings-screen" class="screen">
         <h2 class="text-3xl neon-text-primary mb-8 orbitron" data-text="title_settings">系统终端</h2>
         <div class="bg-black/60 p-6 border border-cyan-900/50 rounded-lg w-full max-w-sm flex flex-col items-center">
-            <div class="setting-row"><span data-text="lbl_volume">主音量</span><input type="range" min="0" max="100" value="50" oninput="setVolume(this.value)" class="accent-cyan-400"></div>
-            <div class="setting-row"><span data-text="lbl_speed">引擎倍速</span><div class="flex items-center gap-2"><input type="range" min="50" max="200" value="100" oninput="setSpeed(this.value)" class="accent-cyan-400"><span id="speed-display" class="text-cyan-400 font-mono w-8 text-right">1.0x</span></div></div>
-            <div class="setting-row"><span data-text="lbl_graphics">画质设置</span><div class="flex items-center gap-2"><input type="range" min="0" max="2" value="1" oninput="setGraphics(this.value)" class="accent-cyan-400"><span id="graphics-display" class="text-cyan-400 font-mono w-16 text-right">中等</span></div></div>
+            <div class="setting-row"><span data-text="lbl_volume">主音量</span><input type="range" id="input-volume" min="0" max="100" value="50" oninput="setVolume(this.value)" class="accent-cyan-400"></div>
+            <div class="setting-row"><span data-text="lbl_speed">引擎倍速</span><div class="flex items-center gap-2"><input type="range" id="input-speed" min="50" max="200" value="100" oninput="setSpeed(this.value)" class="accent-cyan-400"><span id="speed-display" class="text-cyan-400 font-mono w-10 text-right">1.0x</span></div></div>
+            <div class="setting-row"><span data-text="lbl_graphics">画质设置</span><div class="flex items-center gap-2"><input type="range" id="input-graphics" min="0" max="2" value="1" oninput="setGraphics(this.value)" class="accent-cyan-400"><span id="graphics-display" class="text-cyan-400 font-mono w-16 text-right">中等</span></div></div>
+            <!-- 新增：界面大小控制滑块 -->
+            <div class="setting-row"><span data-text="lbl_uiscale">界面缩放</span><div class="flex items-center gap-2"><input type="range" id="input-uiscale" min="50" max="130" value="85" oninput="setUIScale(this.value)" class="accent-cyan-400"><span id="uiscale-display" class="text-cyan-400 font-mono w-10 text-right">0.85x</span></div></div>
+
             <div class="setting-row justify-center mt-6 border-none w-full"><button class="btn w-full !border-purple-600 !text-purple-400 hover:!bg-purple-600 hover:!text-white" onclick="showGuide()" data-text="btn_guide" onmouseenter="AudioSys.play('ui_hover')">战术数据库</button></div>
             <div class="setting-row justify-center mt-2 border-none w-full">
                 <button id="btn-save-quit" class="btn w-full !border-red-600 !text-red-500 hover:!bg-red-600 hover:!text-white" onclick="saveAndExit()" onmouseenter="AudioSys.play('ui_hover')">休眠并返回</button>
@@ -352,16 +358,74 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
 <script>
 
 const AudioSys = {
-    ctx: null, masterGain: null, bgmOsc: null,
+    ctx: null, masterGain: null,
+    isPlayingMusic: false, musicTimeoutId: null, currentTrackName: '',
+    
     init: function() {
         if (!this.ctx) {
             this.ctx = new (window.AudioContext || window.webkitAudioContext)();
-            this.masterGain = this.ctx.createGain(); this.masterGain.connect(this.ctx.destination);
-            this.setVolume(settings.volume); this.startBGM();
+            this.masterGain = this.ctx.createGain(); 
+            this.masterGain.connect(this.ctx.destination);
+            this.setVolume(settings.volume);
+            this.playMusic('menu');
         }
         if (this.ctx.state === 'suspended') this.ctx.resume();
     },
     setVolume: function(v) { if (this.masterGain) this.masterGain.gain.value = v; },
+    
+    stopMusic: function() {
+        this.isPlayingMusic = false;
+        if (this.musicTimeoutId) clearTimeout(this.musicTimeoutId);
+    },
+    
+    playMusic: function(trackName) {
+        if (!this.ctx) return;
+        if (this.currentTrackName === trackName && this.isPlayingMusic) return;
+        this.stopMusic();
+        this.currentTrackName = trackName;
+        this.isPlayingMusic = true;
+        
+        const tracks = {
+            'menu': { 
+                tempo: 100,
+                seq: [ [60, 0.5], [63, 0.5], [67, 0.5], [72, 0.5], [67, 0.5], [63, 0.5], [58, 0.5], [62, 0.5] ]
+            }
+        };
+        
+        let track = tracks[trackName] || tracks['menu'];
+        let step = 0;
+        let nextNoteTime = this.ctx.currentTime + 0.1;
+        const beatDur = 60 / track.tempo;
+        
+        const schedule = () => {
+            if (!this.isPlayingMusic) return;
+            while (nextNoteTime < this.ctx.currentTime + 0.5) {
+                let note = track.seq[step % track.seq.length];
+                if (note[0] !== null) {
+                    let freq = 440 * Math.pow(2, (note[0] - 69) / 12);
+                    let osc = this.ctx.createOscillator();
+                    let gain = this.ctx.createGain();
+                    
+                    osc.type = trackName === 'menu' ? 'square' : 'sawtooth';
+                    osc.frequency.setValueAtTime(freq, nextNoteTime);
+                    osc.connect(gain);
+                    gain.connect(this.masterGain);
+                    
+                    let noteDur = note[1] * beatDur;
+                    gain.gain.setValueAtTime(0.04, nextNoteTime); 
+                    gain.gain.exponentialRampToValueAtTime(0.001, nextNoteTime + noteDur * 0.9);
+                    
+                    osc.start(nextNoteTime);
+                    osc.stop(nextNoteTime + noteDur);
+                }
+                nextNoteTime += note[1] * beatDur;
+                step++;
+            }
+            this.musicTimeoutId = setTimeout(schedule, 100);
+        };
+        schedule();
+    },
+
     play: function(type) {
         if (!this.ctx) return; const t = this.ctx.currentTime; const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain();
         osc.connect(gain); gain.connect(this.masterGain);
@@ -381,13 +445,6 @@ const AudioSys = {
         const noise = this.ctx.createBufferSource(); noise.buffer = buffer; const gain = this.ctx.createGain();
         if (lowpass) { const filter = this.ctx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.value = 1000; noise.connect(filter); filter.connect(gain); } else { noise.connect(gain); }
         gain.connect(this.masterGain); gain.gain.setValueAtTime(vol, this.ctx.currentTime); gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + dur); noise.start();
-    },
-    startBGM: function() {
-        const osc = this.ctx.createOscillator(); const gain = this.ctx.createGain(); const filter = this.ctx.createBiquadFilter();
-        osc.type = 'sawtooth'; osc.frequency.value = 50; filter.type = 'lowpass'; filter.frequency.value = 120;
-        osc.connect(filter); filter.connect(gain); gain.connect(this.masterGain); gain.gain.value = 0.15; osc.start(); this.bgmOsc = osc;
-        const lfo = this.ctx.createOscillator(); lfo.frequency.value = 0.2; const lfoGain = this.ctx.createGain(); lfoGain.gain.value = 50;
-        lfo.connect(lfoGain); lfoGain.connect(filter.frequency); lfo.start();
     }
 };
 
@@ -395,7 +452,7 @@ const TEXTS = {
     btn_launch: "开始任务", btn_hangar: "机库升级", btn_settings: "系统设置", btn_guide: "数据图鉴",
     btn_back: "返回", btn_abort: "放弃", btn_engage: "出击", btn_return: "返回基地",
     title_settings: "系统设置", title_guide: "数据库", title_deploy: "部署准备", title_hangar: "机库", title_upgrade: "系统升级",
-    lbl_language: "语言 / Language", lbl_volume: "主音量", lbl_speed: "游戏倍速", lbl_balance: "金币",
+    lbl_language: "语言 / Language", lbl_volume: "主音量", lbl_speed: "游戏倍速", lbl_graphics: "画质设置", lbl_uiscale: "界面缩放", lbl_balance: "金币",
     lbl_wave_reached: "抵达波次", lbl_credits: "获得金币",
     tab_ships: "机体", tab_enemies: "敌人", tab_weapons: "武器",
     
@@ -469,7 +526,12 @@ const SHOP_CONFIG = {
 const SafeStorage = { data: {}, getItem(key) { return this.data[key] || null; }, setItem(key, value) { this.data[key] = value; }, removeItem(key) { delete this.data[key]; } };
 let storage = SafeStorage; try { if (typeof localStorage !== 'undefined') { localStorage.setItem('__test', '1'); localStorage.removeItem('__test'); storage = localStorage; } } catch(e) {}
 
-let saveData = JSON.parse(storage.getItem('ronin_v20_save')) || { gold: 0, upgrades: {}, unlocks: { easy:true, normal:false, hard:false, endless:false, ach_endless_30:false, win_easy: false, win_normal: false }, achievements: [], currentRun: null };
+let saveData = JSON.parse(storage.getItem('ronin_v25_save')) || { 
+    gold: 0, upgrades: {}, unlocks: { easy:true, normal:false, hard:false, endless:false, ach_endless_30:false, win_easy: false, win_normal: false }, achievements: [], currentRun: null 
+};
+if (!saveData.settings) { saveData.settings = { volume: 0.5, speed: 1.0, graphics: 1, uiScale: 0.85 }; }
+if (saveData.settings.uiScale === undefined) { saveData.settings.uiScale = 0.85; }
+let settings = saveData.settings;
 if (saveData.unlocks.win_easy === undefined) saveData.unlocks.win_easy = saveData.unlocks.normal; if (saveData.unlocks.win_normal === undefined) saveData.unlocks.win_normal = saveData.unlocks.hard;
 
 if (saveData.upgrades) {
@@ -480,8 +542,15 @@ if (saveData.upgrades) {
     }
 }
 
-function saveGame() { storage.setItem('ronin_v20_save', JSON.stringify(saveData)); updateUI(); }
-function resetSave() { storage.removeItem('ronin_v20_save'); location.reload(); }
+// 核心更新：在游戏初始化时自动挂载根字号控制
+document.documentElement.style.fontSize = (settings.uiScale * 16) + 'px';
+
+function saveGame() { 
+    saveData.settings = settings;
+    storage.setItem('ronin_v25_save', JSON.stringify(saveData)); 
+    updateUI(); 
+}
+function resetSave() { storage.removeItem('ronin_v25_save'); location.reload(); }
 function showModal(msg, onConfirm) { 
     let m = document.getElementById('modal-overlay');
     if (!m) {
@@ -495,7 +564,7 @@ function closeModal() { const m = document.getElementById('modal-overlay'); if (
 function abandonAndStartNew() { showModal("确定要放弃当前任务进度吗？\n\n放弃后当前波次进度将丢失，直接开始新的一局。", () => { saveData.currentRun = null; saveGame(); openShipSelect(); }); }
 function triggerResetSave() { showModal("确定要彻底重置所有存档吗？\n\n所有金币、解锁和成就将丢失，此操作不可逆！", () => { resetSave(); }); }
 
-let settings = { volume: 0.5, speed: 1.0, graphics: 1 }; function t(key) { return TEXTS[key] || key; }
+function t(key) { return TEXTS[key] || key; }
 let gameState='menu', currentShip='ranger', currentMode='easy', gameLoopId, frameCount=0, shakeAmount=0;
 let enemies=[], particles=[], pickups=[], activeProjectiles=[]; let previousScreen = 'main-menu'; let bombEffectTimer = 0; let activeBoss = null; 
 
@@ -504,7 +573,7 @@ let endlessEventTimer = 0;
 let endlessNextEventTime = 30;
 
 let cheatClicks = 0; let cheatTimer = null;
-function triggerCheatCode() { cheatClicks++; const title = document.getElementById('title-logo'); if(title) { title.style.filter = `drop-shadow(0 0 ${20 + cheatClicks * 10}px rgba(255,0,85,${cheatClicks/10}))`; setTimeout(() => { title.style.filter = ""; }, 100); } if (cheatTimer) clearTimeout(cheatTimer); cheatTimer = setTimeout(() => { cheatClicks = 0; }, 1000); if (cheatClicks >= 10) { saveData.unlocks.win_easy = true; saveData.unlocks.win_normal = true; saveData.unlocks.ach_endless_30 = true; saveData.unlocks.ach_endless_50 = true; saveData.unlocks.ach_endless_100 = true; saveData.unlocks.normal = true; saveData.unlocks.hard = true; saveData.unlocks.endless = true; if(!saveData.achievements.includes('endless_30')) saveData.achievements.push('endless_30'); if(!saveData.achievements.includes('endless_50')) saveData.achievements.push('endless_50'); if(!saveData.achievements.includes('endless_100')) saveData.achievements.push('endless_100'); saveData.gold += 5000000; saveGame(); notifyUnlock("👨‍💻 开发者指令：全机体/模式/成就已解锁！(金币+5000000)"); cheatClicks = 0; updateUI(); } }
+function triggerCheatCode() { cheatClicks++; const title = document.getElementById('title-logo'); if(title) { title.style.filter = `drop-shadow(0 0 ${20 + cheatClicks * 10}px rgba(255,0,85,${cheatClicks/10}))`; setTimeout(() => { title.style.filter = ""; }, 100); } if (cheatTimer) clearTimeout(cheatTimer); cheatTimer = setTimeout(() => { cheatClicks = 0; }, 1000); if (cheatClicks >= 10) { saveData.unlocks.win_easy = true; saveData.unlocks.win_normal = true; saveData.unlocks.ach_endless_30 = true; saveData.unlocks.ach_endless_50 = true; saveData.unlocks.ach_endless_100 = true; saveData.unlocks.normal = true; saveData.unlocks.hard = true; saveData.unlocks.endless = true; if(!saveData.achievements.includes('endless_30')) saveData.achievements.push('endless_30'); if(!saveData.achievements.includes('endless_50')) saveData.achievements.push('endless_50'); if(!saveData.achievements.includes('endless_100')) saveData.achievements.push('endless_100'); saveData.gold += 5000000; saveGame(); notifyUnlock("👨‍💻 开发者指令：全机体/模式/成就已解锁！(金币+5000000)"); cheatClicks = 0; updateUI(); AudioSys.init(); } }
 
 let gameWave = 1; let waveTimer = 0; let freezeTimer = 0; let isWaveBossActive = false; let runStats = { kills: 0, goldEarned: 0, hit: false }; 
 
@@ -1349,7 +1418,9 @@ class Enemy {
         if (this.marked) return; 
         this.hp-=d; showFloatText(this.x, this.y, Math.floor(d), '#fff');
         this.flashTimer = 3; AudioSys.play('hit');
-        if (this.hp <= 0 && activeBoss === this) { activeBoss = null; document.getElementById('boss-hud').style.display = 'none'; }
+        if (this.hp <= 0 && activeBoss === this) { 
+            activeBoss = null; document.getElementById('boss-hud').style.display = 'none'; 
+        }
         if(this.hp<=0) {
             this.marked=true; createExplosion(this.x,this.y,this.color,10); player.chargeBomb(1); runStats.kills++; AudioSys.play('explode');
             if (this.type === 'tank') { for(let i=0; i<3; i++) { let m = new Enemy('micro_drone', gameWave); m.x = this.x + (Math.random() - 0.5) * 20;; m.y = this.y; enemies.push(m); } }
@@ -1476,7 +1547,8 @@ function fireWeapon(k, lvl, p) {
 }
 
 function spawnWaveBoss() {
-    isWaveBossActive = true; AudioSys.play('alarm');
+    isWaveBossActive = true; 
+    AudioSys.play('alarm');
     if (gameWave % 10 === 0 && gameWave >= 10) { 
         let bossType = 'boss';
         if (gameWave % 30 === 0) bossType = 'boss_omega';
@@ -1492,19 +1564,43 @@ function spawnWaveBoss() {
 function completeWave() {
     gameWave++; waveTimer = 0; isWaveBossActive = false; const modeConfig = MODES[currentMode];
     if (currentMode !== 'endless' && gameWave > modeConfig.maxWave) { endGame(true); return; }
+    
     saveRunState(); updateHUD(); enemies.forEach(e => { if(e.role === 'minion') { e.marked = true; createExplosion(e.x, e.y, e.color, 5); } });
 }
 
 function showWarning(text) { const el = document.getElementById('warning-overlay'); el.innerHTML = `<div class="warning-text">${text}</div>`; el.style.display = 'block'; setTimeout(() => { el.style.display = 'none'; }, 3000); }
 function notifyUnlock(text) { const el = document.getElementById('unlock-notify'); el.innerText = text; el.style.display = 'block'; setTimeout(() => { el.style.display = 'none'; }, 4000); }
 function pauseAndShowSettings() { if (gameState === 'playing') { gameState = 'paused'; previousScreen = 'game'; document.getElementById('btn-save-quit').style.display = 'block'; } else { previousScreen = 'main-menu'; document.getElementById('btn-save-quit').style.display = 'none'; } showSettings(); }
-function showSettings() { document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); document.getElementById('settings-screen').classList.add('active'); const saveBtn = document.getElementById('btn-save-quit'); const backBtn = document.getElementById('settings-back-btn'); if (gameState === 'paused') { backBtn.innerText = "继续游戏"; backBtn.onclick = resumeGame; if (saveBtn) saveBtn.style.display = 'block'; } else { backBtn.innerText = "返回"; backBtn.onclick = backToMenu; if (saveBtn) saveBtn.style.display = 'none'; } }
+function showSettings() { 
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); 
+    document.getElementById('settings-screen').classList.add('active'); 
+    
+    // 初始化设置面板中的滑块与文本
+    document.getElementById('input-volume').value = settings.volume * 100;
+    document.getElementById('input-speed').value = settings.speed * 100;
+    document.getElementById('speed-display').innerText = settings.speed.toFixed(1) + 'x';
+    document.getElementById('input-graphics').value = settings.graphics;
+    const graphicsLabels = ["低(流畅)", "中等", "高(绚丽)"];
+    document.getElementById('graphics-display').innerText = graphicsLabels[settings.graphics];
+    document.getElementById('input-uiscale').value = Math.round(settings.uiScale * 100);
+    document.getElementById('uiscale-display').innerText = settings.uiScale.toFixed(2) + 'x';
+
+    const saveBtn = document.getElementById('btn-save-quit'); 
+    const backBtn = document.getElementById('settings-back-btn'); 
+    if (gameState === 'paused') { 
+        backBtn.innerText = "继续游戏"; backBtn.onclick = resumeGame; 
+        if (saveBtn) saveBtn.style.display = 'block'; 
+    } else { 
+        backBtn.innerText = "返回"; backBtn.onclick = backToMenu; 
+        if (saveBtn) saveBtn.style.display = 'none'; 
+    } 
+}
 function resumeGame() { document.getElementById('settings-screen').classList.remove('active'); gameState = 'playing'; gameLoop(); }
 function saveRunState() { if (gameState === 'gameover') return; saveData.currentRun = { wave: gameWave, mode: currentMode, stats: runStats, player: { type: player.shipType, hp: player.hp, maxHp: player.maxHp, shieldHp: player.shieldHp !== undefined ? player.shieldHp : 0, shieldTimer: player.shieldTimer !== undefined ? player.shieldTimer : 0, xp: player.xp, level: player.level, nextLvl: player.nextLvl, gold: player.gold, bomb: player.bombCharge, weapons: player.weapons, passives: player.passives, rerolls: player.rerolls, rerollCost: player.rerollCost, lbDmgBonus: player.lbDmgBonus } }; saveGame(); }
 function saveAndExit() { if (gameState === 'paused') { saveRunState(); enemies = []; activeProjectiles = []; pickups = []; backToMenu(); } }
 function checkRunAndLaunch() { AudioSys.init(); AudioSys.play('ui_click'); if (saveData.currentRun) { loadRunState(); } else { openShipSelect(); } }
-function backToMenu() { gameState = 'menu'; document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('main-menu').classList.add('active'); document.getElementById('hud-layer').style.display = 'none'; updateUI(); }
-function loadRunState() { const run = saveData.currentRun; if (!run) return; currentMode = run.mode; gameWave = run.wave; runStats = run.stats; currentShip = run.player.type; activeBoss = null; player = new Player(currentShip); player.hp = run.player.hp; player.maxHp = run.player.maxHp; player.shieldHp = run.player.shieldHp !== undefined ? run.player.shieldHp : 0; player.shieldTimer = run.player.shieldTimer !== undefined ? run.player.shieldTimer : 0; player.xp = run.player.xp; player.level = run.player.level; player.nextLvl = run.player.nextLvl; player.gold = run.player.gold; player.bombCharge = run.player.bomb; player.weapons = run.player.weapons; player.passives = run.player.passives; player.rerolls = run.player.rerolls; player.rerollCost = run.player.rerollCost || 100; player.lbDmgBonus = run.player.lbDmgBonus || 0; waveTimer = 0; freezeTimer = 0; isWaveBossActive = false; endlessEventTimer = 0; endlessNextEventTime = 30 + Math.random() * 30; enemies = []; activeProjectiles = []; pickups = []; document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('hud-layer').style.display='block'; gameState = 'playing'; gameLoop(); }
+function backToMenu() { gameState = 'menu'; document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('main-menu').classList.add('active'); document.getElementById('hud-layer').style.display = 'none'; updateUI(); AudioSys.playMusic('menu'); }
+function loadRunState() { const run = saveData.currentRun; if (!run) return; currentMode = run.mode; gameWave = run.wave; runStats = run.stats; currentShip = run.player.type; activeBoss = null; player = new Player(currentShip); player.hp = run.player.hp; player.maxHp = run.player.maxHp; player.shieldHp = run.player.shieldHp !== undefined ? run.player.shieldHp : 0; player.shieldTimer = run.player.shieldTimer !== undefined ? run.player.shieldTimer : 0; player.xp = run.player.xp; player.level = run.player.level; player.nextLvl = run.player.nextLvl; player.gold = run.player.gold; player.bombCharge = run.player.bomb; player.weapons = run.player.weapons; player.passives = run.player.passives; player.rerolls = run.player.rerolls; player.rerollCost = run.player.rerollCost || 100; player.lbDmgBonus = run.player.lbDmgBonus || 0; waveTimer = 0; freezeTimer = 0; isWaveBossActive = false; endlessEventTimer = 0; endlessNextEventTime = 30 + Math.random() * 30; enemies = []; activeProjectiles = []; pickups = []; document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('hud-layer').style.display='block'; gameState = 'playing'; AudioSys.stopMusic(); gameLoop(); }
 
 // ======================== 新增随机事件系统 ========================
 function triggerRandomEvent() {
@@ -2196,7 +2292,7 @@ function rerollUpgrades() {
     } 
 }
 
-function endGame(win) { gameState='gameover'; document.getElementById('result-screen').classList.add('active'); saveData.currentRun = null; let earnings = player.gold; let displayWave = win && currentMode !== 'endless' ? MODES[currentMode].maxWave : gameWave - 1; const context = { win, mode: currentMode, wave: displayWave, kills: runStats.kills, goldEarned: runStats.goldEarned, hit: runStats.hit, hpPct: player.hp / player.maxHp }; let newUnlocks = []; ACHIEVEMENTS.forEach(ach => { if (!saveData.achievements.includes(ach.id) && ach.check(context)) { saveData.achievements.push(ach.id); saveData.gold += ach.reward; earnings += ach.reward; newUnlocks.push(`<span class="text-yellow-400" style="text-shadow:0 0 5px #ffea00">🏆 成就解锁：${ach.title} (+${ach.reward})</span>`); } }); if (win) { if (currentMode === 'easy') { if (!saveData.unlocks.normal) { saveData.unlocks.normal = true; newUnlocks.push(`<span class="text-cyan-400" style="text-shadow:0 0 5px #00e5ff">🔓 模式解锁：老兵</span>`); } if (!saveData.unlocks.win_easy) { saveData.unlocks.win_easy = true; newUnlocks.push(`<span class="text-green-400" style="text-shadow:0 0 5px #00ffaa">✈️ 机体解锁：堡垒</span>`); } } if (currentMode === 'normal') { if (!saveData.unlocks.hard) { saveData.unlocks.hard = true; newUnlocks.push(`<span class="text-cyan-400" style="text-shadow:0 0 5px #00e5ff">🔓 模式解锁：精英</span>`); } if (!saveData.unlocks.win_normal) { saveData.unlocks.win_normal = true; newUnlocks.push(`<span class="text-yellow-400" style="text-shadow:0 0 5px #ffea00">✈️ 机体解锁：闪电</span>`); } } if (currentMode === 'hard' && !saveData.unlocks.endless) { saveData.unlocks.endless = true; newUnlocks.push(`<span class="text-cyan-400" style="text-shadow:0 0 5px #00e5ff">🔓 模式解锁：无尽</span>`); } } 
+function endGame(win) { gameState='gameover'; AudioSys.playMusic('menu'); document.getElementById('result-screen').classList.add('active'); saveData.currentRun = null; let earnings = player.gold; let displayWave = win && currentMode !== 'endless' ? MODES[currentMode].maxWave : gameWave - 1; const context = { win, mode: currentMode, wave: displayWave, kills: runStats.kills, goldEarned: runStats.goldEarned, hit: runStats.hit, hpPct: player.hp / player.maxHp }; let newUnlocks = []; ACHIEVEMENTS.forEach(ach => { if (!saveData.achievements.includes(ach.id) && ach.check(context)) { saveData.achievements.push(ach.id); saveData.gold += ach.reward; earnings += ach.reward; newUnlocks.push(`<span class="text-yellow-400" style="text-shadow:0 0 5px #ffea00">🏆 成就解锁：${ach.title} (+${ach.reward})</span>`); } }); if (win) { if (currentMode === 'easy') { if (!saveData.unlocks.normal) { saveData.unlocks.normal = true; newUnlocks.push(`<span class="text-cyan-400" style="text-shadow:0 0 5px #00e5ff">🔓 模式解锁：老兵</span>`); } if (!saveData.unlocks.win_easy) { saveData.unlocks.win_easy = true; newUnlocks.push(`<span class="text-green-400" style="text-shadow:0 0 5px #00ffaa">✈️ 机体解锁：堡垒</span>`); } } if (currentMode === 'normal') { if (!saveData.unlocks.hard) { saveData.unlocks.hard = true; newUnlocks.push(`<span class="text-cyan-400" style="text-shadow:0 0 5px #00e5ff">🔓 模式解锁：精英</span>`); } if (!saveData.unlocks.win_normal) { saveData.unlocks.win_normal = true; newUnlocks.push(`<span class="text-yellow-400" style="text-shadow:0 0 5px #ffea00">✈️ 机体解锁：闪电</span>`); } } if (currentMode === 'hard' && !saveData.unlocks.endless) { saveData.unlocks.endless = true; newUnlocks.push(`<span class="text-cyan-400" style="text-shadow:0 0 5px #00e5ff">🔓 模式解锁：无尽</span>`); } } 
     if (saveData.achievements.includes('endless_30') && !saveData.unlocks.ach_endless_30) { saveData.unlocks.ach_endless_30 = true; newUnlocks.push(`<span class="text-purple-400" style="text-shadow:0 0 5px #d500f9">✈️ 机体解锁：幽影</span>`); }
     if (saveData.achievements.includes('endless_50') && !saveData.unlocks.ach_endless_50) { saveData.unlocks.ach_endless_50 = true; newUnlocks.push(`<span class="text-cyan-200" style="text-shadow:0 0 5px #00ffff">✈️ 机体解锁：激光者</span>`); }
     if (saveData.achievements.includes('endless_100') && !saveData.unlocks.ach_endless_100) { saveData.unlocks.ach_endless_100 = true; newUnlocks.push(`<span class="text-white" style="text-shadow:0 0 10px #ffffff">✈️ 终极机体解锁：神明</span>`); }
@@ -2206,7 +2302,7 @@ function openShipSelect() { document.querySelectorAll('.screen').forEach(s=>s.cl
 function renderModeButtons() { const c = document.getElementById('mode-buttons'); c.innerHTML = ''; for (const [k, conf] of Object.entries(MODES)) { let unlocked = k === 'easy' || saveData.unlocks[k] !== false; let btn = document.createElement('button'); btn.className = `btn py-2 px-4 text-xs m-0 border-none ${unlocked ? (currentMode===k?'bg-cyan-600 text-white shadow-[0_0_10px_#00e5ff]':'bg-gray-800') : 'locked bg-gray-900 text-gray-600'}`; btn.innerHTML = unlocked ? conf.name : `🔒 ${conf.name}`; if (unlocked) btn.onclick = () => { AudioSys.play('ui_click'); currentMode = k; renderModeButtons(); document.getElementById('mode-desc').innerText = conf.desc; }; c.appendChild(btn); } document.getElementById('mode-desc').innerText = MODES[currentMode].desc; }
 function updateShipGrid() { 
     const c = document.getElementById('ship-container'); c.innerHTML = ''; 
-    const infoPanel = document.getElementById('selected-ship-info'); // 获取详情面板
+    const infoPanel = document.getElementById('selected-ship-info'); 
     
     for (const [k, conf] of Object.entries(SHIPS)) { 
         let unlocked = false;
@@ -2216,13 +2312,11 @@ function updateShipGrid() {
         
         let d=document.createElement('div'); d.className=`card ${currentShip===k?'selected':''} ${!unlocked?'locked':''}`; 
         
-        // 移除了内部的 <p> 标签描述，让卡片只显示图标和名字，保持网格整洁
         d.innerHTML=`${!unlocked ? '<div class="absolute inset-0 flex items-center justify-center bg-black/80 z-10"><span class="text-2xl">🔒</span></div>' : ''}<div class="card-icon" style="color:${conf.color}; filter:drop-shadow(0 0 10px ${conf.color}); margin-bottom:5px;">✈</div><h3 style="margin-bottom:0; font-size:1rem;">${conf.name}</h3>`; 
         
         if (unlocked) d.onclick=()=>{ AudioSys.play('ui_click'); currentShip=k; updateShipGrid(); }; 
         c.appendChild(d); 
         
-        // 动态更新独立面板中的文本描述
         if (currentShip === k && infoPanel) {
             infoPanel.innerHTML = `<div class="text-lg font-bold mb-1 tracking-widest" style="color:${conf.color}; text-shadow:0 0 8px ${conf.color}">${conf.name}</div><div class="text-sm text-gray-300 leading-relaxed px-2">${t(conf.descKey)}</div>`;
         }
@@ -2286,12 +2380,34 @@ function renderShop() {
 }
 
 function showAchievements() { document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('ach-screen').classList.add('active'); const list = document.getElementById('ach-list'); list.innerHTML = ''; ACHIEVEMENTS.forEach(ach => { let isUnlocked = saveData.achievements.includes(ach.id); let div = document.createElement('div'); div.className = `ach-item ${isUnlocked ? 'unlocked' : ''}`; div.innerHTML = `<div class="ach-icon">${isUnlocked ? '🏆' : '🔒'}</div><div><div class="font-bold ${isUnlocked ? 'text-yellow-400' : 'text-gray-500'}">${ach.title}</div><div class="ach-desc">${ach.desc}</div></div><div class="ach-reward">+${ach.reward}</div>`; list.appendChild(div); }); }
-function launchGame(isNew = false) { document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('hud-layer').style.display='block'; if (isNew) { player=new Player(currentShip); gameWave = 1; waveTimer = 0; freezeTimer = 0; isWaveBossActive = false; endlessEventTimer = 0; endlessNextEventTime = 30 + Math.random() * 30; enemies = []; activeProjectiles = []; pickups = []; runStats = { kills: 0, goldEarned: 0, hit: false }; } gameState='playing'; gameLoop(); }
+function launchGame(isNew = false) { document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('hud-layer').style.display='block'; if (isNew) { player=new Player(currentShip); gameWave = 1; waveTimer = 0; freezeTimer = 0; isWaveBossActive = false; endlessEventTimer = 0; endlessNextEventTime = 30 + Math.random() * 30; enemies = []; activeProjectiles = []; pickups = []; runStats = { kills: 0, goldEarned: 0, hit: false }; } gameState='playing'; AudioSys.stopMusic(); gameLoop(); }
 function showGuide() { document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('guide-screen').classList.add('active'); switchTab('weapons'); }
-function setVolume(v) { settings.volume=v/100; AudioSys.setVolume(settings.volume); } function setSpeed(v) { settings.speed=v/100; document.getElementById('speed-display').innerText=settings.speed+'x'; }
+function setVolume(v) { settings.volume=v/100; AudioSys.setVolume(settings.volume); } 
+function setSpeed(v) { settings.speed=v/100; document.getElementById('speed-display').innerText=settings.speed.toFixed(1)+'x'; }
 function setGraphics(v) { settings.graphics = parseInt(v); const labels = ["低(流畅)", "中等", "高(绚丽)"]; document.getElementById('graphics-display').innerText = labels[settings.graphics]; initStars(); }
+
+// 新增：动态设置 UI 缩放倍率，通过更改根目录 font-size 实现
+function setUIScale(v) { 
+    settings.uiScale = parseInt(v) / 100; 
+    document.getElementById('uiscale-display').innerText = settings.uiScale.toFixed(2) + 'x'; 
+    document.documentElement.style.fontSize = (settings.uiScale * 16) + 'px'; 
+}
+
 function switchTab(tab) { AudioSys.play('ui_click'); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); const buttons = document.getElementsByClassName('tab-btn'); for (let i = 0; i < buttons.length; i++) if (buttons[i].getAttribute('onclick') === `switchTab('${tab}')`) buttons[i].classList.add('active'); const container = document.getElementById('guide-content'); container.innerHTML = ''; let data = []; if (tab === 'ships') Object.keys(SHIPS).forEach(k => data.push({icon:'✈️', title:SHIPS[k].name, desc:t(SHIPS[k].descKey), color:SHIPS[k].color})); else if (tab === 'enemies') Object.keys(TEXTS).filter(k=>k.startsWith('enemy_')).forEach(k => data.push({icon:'👾', title:t(k).split(':')[0], desc:t(k), color:'#ff0055'})); else if (tab === 'weapons') Object.keys(WEAPONS).forEach(k => data.push({icon: ICONS[k] || '🔫', title:t(WEAPONS[k].nameKey), desc:t(WEAPONS[k].descKey), color:WEAPONS[k].color})); else if (tab === 'passives') UPGRADE_POOL.filter(i => i.type === 'passive').forEach(p => data.push({ icon: ICONS[p.id] || '🔹', title: t(p.nameKey), desc: t(p.descKey), color:'#00ffaa' })); else if (tab === 'evolution') Object.keys(WEAPONS).forEach(k => { let w = WEAPONS[k]; let p = UPGRADE_POOL.find(u => u.id === w.passive); let e = EVOLUTIONS[w.evo]; data.push({ icon: '🔄', title: `<span class="text-cyan-300">${t(w.nameKey)}</span> + <span class="text-yellow-300">${ICONS[p.id]} ${t(p.nameKey)}</span>`, desc: `<div class="mt-1 text-purple-400 font-bold" style="text-shadow:0 0 5px #d500f9">⬇️ 合成: ${ICONS[w.evo]} ${t(e.nameKey)}</div><div class="text-xs text-gray-400 mt-1">${t(e.descKey)}</div>`, isHtml: true, color:'#d500f9' }); }); data.forEach(item => { container.innerHTML += `<div class="guide-item" style="display:flex; gap:15px; margin-bottom:12px; padding:12px; background:rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); align-items:center; border-radius:4px;"><div class="guide-icon text-3xl" style="color:${item.color}; filter:drop-shadow(0 0 8px ${item.color})">${item.icon}</div>${item.isHtml ? `<div class="flex-1"><div class="font-bold text-white text-sm mb-1">${item.title}</div>${item.desc}</div>` : `<div class="flex-1"><div class="font-bold text-lg mb-1" style="color:${item.color}; text-shadow:0 0 5px ${item.color}">${item.title}</div><div class="text-xs text-gray-400 leading-relaxed">${item.desc}</div></div>`}</div>`; }); }
-function triggerBombUI() { if(player.bombCharge >= player.bombMax){ player.bombCharge = 0; enemies.forEach(e => { if (e.role === 'minion') e.takeDamage(99999); else e.takeDamage(800 + gameWave * 20); }); activeProjectiles.forEach(p => { if (p.team === 'enemy' || p.type === 'enemy_bullet' || p.type === 'enemy_missile' || p.type === 'enemy_laser') { p.marked = true; createExplosion(p.x, p.y, p.color, 3); } }); createExplosion(canvas.width/2, canvas.height/2, '#fff', 100); shakeAmount = 30; bombEffectTimer = 40; AudioSys.play('explode'); updateHUD(); } }
+
+function triggerBombUI() { 
+    if(player.bombCharge >= player.bombMax){ 
+        player.bombCharge = 0; 
+        enemies.forEach(e => { if (e.role === 'minion') e.takeDamage(99999); else e.takeDamage(800 + gameWave * 20); }); 
+        activeProjectiles.forEach(p => { if (p.team === 'enemy' || p.type === 'enemy_bullet' || p.type === 'enemy_missile' || p.type === 'enemy_laser') { p.marked = true; createExplosion(p.x, p.y, p.color, 3); } }); 
+        createExplosion(canvas.width/2, canvas.height/2, '#fff', 100); 
+        shakeAmount = 30; 
+        bombEffectTimer = 40; 
+        AudioSys.play('explode'); 
+        updateHUD(); 
+    } 
+}
+
 updateUI();
 </script>
 </body>
