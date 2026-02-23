@@ -108,7 +108,7 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
         .card-icon { font-size: 2.5rem; margin-bottom: 0.625rem; filter: drop-shadow(0 0 10px currentColor); }
 
         @media (max-width: 640px) {
-            #shop-screen, #guide-screen, #ach-screen, #ship-select { justify-content: flex-start; padding-top: 2.5rem; padding-bottom: 0.625rem; }
+            #shop-screen, #guide-screen, #ach-screen, #ship-select, #leaderboard-screen { justify-content: flex-start; padding-top: 2.5rem; padding-bottom: 0.625rem; }
             .grid-box { width: 96%; padding: 0.625rem; gap: 0.5rem; grid-template-columns: repeat(auto-fit, minmax(8.4375rem, 1fr)); }
             .card { padding: 0.625rem 0.3125rem; }
             #shop-container .card div:first-child { font-size: 0.9rem; }
@@ -178,6 +178,66 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
     </style>
 </head>
 <body>
+    
+    <!-- 引入 Firebase 云端模块 -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, collection, getDocs, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        window.FirebaseAPI = { ready: false };
+        
+        try {
+            if (typeof __firebase_config !== 'undefined') {
+                const firebaseConfig = JSON.parse(__firebase_config);
+                const app = initializeApp(firebaseConfig);
+                const auth = getAuth(app);
+                const db = getFirestore(app);
+                const appId = typeof __app_id !== 'undefined' ? __app_id : 'ronin-app';
+
+                const initAuth = async () => {
+                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                    } else {
+                        await signInAnonymously(auth);
+                    }
+                };
+                initAuth();
+
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        window.FirebaseAPI.ready = true;
+                        window.FirebaseAPI.user = user;
+                        window.FirebaseAPI.db = db;
+                        window.FirebaseAPI.appId = appId;
+                    }
+                });
+
+                window.FirebaseAPI.uploadScore = async (nickname, wave) => {
+                    if (!window.FirebaseAPI.ready) return false;
+                    try {
+                        const docRef = doc(window.FirebaseAPI.db, 'artifacts', window.FirebaseAPI.appId, 'public', 'data', 'leaderboard', window.FirebaseAPI.user.uid);
+                        await setDoc(docRef, { nickname, wave, uid: window.FirebaseAPI.user.uid, timestamp: Date.now() }, { merge: true });
+                        return true;
+                    } catch (e) { console.error("Firebase API Error:", e); return false; }
+                };
+
+                window.FirebaseAPI.getLeaderboard = async () => {
+                    if (!window.FirebaseAPI.ready) return [];
+                    try {
+                        const colRef = collection(window.FirebaseAPI.db, 'artifacts', window.FirebaseAPI.appId, 'public', 'data', 'leaderboard');
+                        const snap = await getDocs(colRef);
+                        let data = [];
+                        snap.forEach(d => data.push(d.data()));
+                        data.sort((a,b) => b.wave - a.wave); // Descending sort by wave
+                        return data.slice(0, 50); // Top 50 
+                    } catch (e) { console.error("Firebase API Error:", e); return []; }
+                };
+            }
+        } catch(e) {
+            console.error("Firebase Initialization Failed:", e);
+        }
+    </script>
 
     <div id="unlock-notify">解锁新内容！</div>
 
@@ -192,18 +252,28 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
         <p class="text-xs text-gray-400 mb-10 font-mono tracking-widest border-t border-b border-cyan-900/50 py-2 w-64 text-center bg-black/30">系统 V2.5 // 神明再临</p>
 
         <div class="flex flex-col items-center w-full max-w-sm gap-4 relative z-10">
-            <button id="btn-start-mission" class="btn w-full flex justify-between items-center group" onclick="checkRunAndLaunch()" data-text="btn_launch" onmouseenter="AudioSys.play('ui_hover')">
+            <button id="btn-start-mission" class="btn w-full flex justify-between items-center group" onclick="checkRunAndLaunch()" data-text="btn_launch" onmouseenter="AudioSys && AudioSys.play('ui_hover')">
                 <span>开始任务</span> <span class="text-xs opacity-50 group-hover:translate-x-1 transition">>>></span>
             </button>
-            <button id="btn-abandon-mission" class="btn w-full flex justify-between items-center group !border-red-900 !text-red-500 hover:!text-white hover:!bg-red-900/50" onclick="abandonAndStartNew()" style="display:none" onmouseenter="AudioSys.play('ui_hover')">
+            <button id="btn-abandon-mission" class="btn w-full flex justify-between items-center group !border-red-900 !text-red-500 hover:!text-white hover:!bg-red-900/50" onclick="abandonAndStartNew()" style="display:none" onmouseenter="AudioSys && AudioSys.play('ui_hover')">
                 <span class="text-sm">放弃并开始新任务</span> <span class="text-xs opacity-50">X</span>
             </button>
-            <button class="btn w-full text-sm !border-yellow-600 !text-yellow-400 hover:!text-black hover:!bg-yellow-400" onclick="showAchievements()" onmouseenter="AudioSys.play('ui_hover')">
-                <span class="mr-2">🏆</span> 成就记录
-            </button>
+            
             <div class="grid grid-cols-2 gap-4 w-full">
-                <button id="btn-hangar" class="btn m-0 text-sm !border-gray-500 !text-gray-300 hover:!bg-gray-200 hover:!text-black" onclick="showShop()" data-text="btn_hangar" onmouseenter="AudioSys.play('ui_hover')">机库升级</button>
-                <button class="btn m-0 text-sm !border-gray-500 !text-gray-300 hover:!bg-gray-200 hover:!text-black" onclick="showSettings()" data-text="btn_settings" onmouseenter="AudioSys.play('ui_hover')">系统设置</button>
+                <button class="btn m-0 text-sm !border-yellow-600 !text-yellow-400 hover:!text-black hover:!bg-yellow-400" onclick="showAchievements()" onmouseenter="AudioSys && AudioSys.play('ui_hover')">
+                    <span class="mr-2">🏆</span> 成就
+                </button>
+                <button class="btn m-0 text-sm !border-gray-500 !text-gray-300 hover:!bg-gray-200 hover:!text-black" onclick="showSettings()" data-text="btn_settings" onmouseenter="AudioSys && AudioSys.play('ui_hover')">系统</button>
+            </div>
+            
+            <div class="grid grid-cols-1 gap-4 w-full" id="btn-leaderboard-container" style="display: none;">
+                <button class="btn m-0 w-full text-sm !border-cyan-600 !text-cyan-400 hover:!text-black hover:!bg-cyan-400 shadow-[0_0_15px_rgba(0,229,255,0.2)]" onclick="showLeaderboard()" onmouseenter="AudioSys && AudioSys.play('ui_hover')">
+                    <span class="mr-2">🌐</span> 星际排行榜
+                </button>
+            </div>
+
+            <div class="grid grid-cols-1 gap-4 w-full">
+                <button id="btn-hangar" class="btn m-0 w-full text-sm !border-gray-500 !text-gray-300 hover:!bg-gray-200 hover:!text-black" onclick="showShop()" data-text="btn_hangar" onmouseenter="AudioSys && AudioSys.play('ui_hover')">机库升级</button>
             </div>
         </div>
         
@@ -212,6 +282,23 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
             <span class="text-yellow-500 text-xs font-bold tracking-widest">金币</span>
             <span id="menu-gold" class="text-white font-bold text-xl font-mono neon-text-warn">0</span>
         </div>
+    </div>
+
+    <!-- 新增：无尽排行榜 Screen -->
+    <div id="leaderboard-screen" class="screen">
+        <h2 class="text-3xl neon-text-primary mb-4 orbitron tracking-widest">无尽名人堂</h2>
+        <div class="mb-4 text-center w-full max-w-lg px-4">
+            <div class="text-xs text-gray-400 mb-2">你的最高存活记录: <span id="lb-personal-best" class="text-yellow-400 font-bold text-lg drop-shadow-md">0</span> 波</div>
+            <div class="flex gap-2 justify-center items-center">
+                <input type="text" id="lb-nickname" placeholder="输入指挥官代号" class="bg-black/80 border border-cyan-900 px-3 py-2 text-sm text-cyan-300 outline-none w-40 rounded" maxlength="10">
+                <button class="btn py-2 px-6 text-xs m-0 shrink-0" onclick="submitScore()">上传战绩</button>
+            </div>
+            <div id="lb-status" class="text-xs text-green-400 mt-2 h-4 font-bold tracking-widest"></div>
+        </div>
+        <div class="w-full max-w-lg px-4 h-64 overflow-y-auto bg-black/60 border border-cyan-900/30 p-4 shadow-[inset_0_0_20px_rgba(0,0,0,0.8)] rounded" id="lb-list">
+            <div class="text-center text-gray-500 text-sm mt-10">数据同步中...</div>
+        </div>
+        <button class="btn mt-6" onclick="backToMenu()" onmouseenter="AudioSys && AudioSys.play('ui_hover')">返回主屏幕</button>
     </div>
 
     <!-- 2. Ship Select -->
@@ -232,8 +319,8 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
                 <div id="mode-desc" class="text-xs text-cyan-400 mt-1 h-4 font-bold"></div>
             </div>
             <div class="flex justify-center gap-6">
-                <button class="text-red-500 text-sm hover:underline tracking-widest font-bold" onclick="backToMenu()" data-text="btn_abort" onmouseenter="AudioSys.play('ui_hover')">放弃</button>
-                <button class="btn bg-cyan-500 text-black border-none hover:bg-cyan-400 m-0 w-48 shadow-[0_0_20px_var(--c-primary)]" onclick="launchGame(true)" data-text="btn_engage" onmouseenter="AudioSys.play('ui_hover')">启动引擎</button>
+                <button class="text-red-500 text-sm hover:underline tracking-widest font-bold" onclick="backToMenu()" data-text="btn_abort" onmouseenter="AudioSys && AudioSys.play('ui_hover')">放弃</button>
+                <button class="btn bg-cyan-500 text-black border-none hover:bg-cyan-400 m-0 w-48 shadow-[0_0_20px_var(--c-primary)]" onclick="launchGame(true)" data-text="btn_engage" onmouseenter="AudioSys && AudioSys.play('ui_hover')">启动引擎</button>
             </div>
         </div>
     </div>
@@ -243,7 +330,7 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
         <div id="xp-bar-c"><div id="xp-bar-f"></div></div>
         <div id="warning-overlay"><div class="warning-text">警告：高能反应</div></div>
         
-        <div id="game-settings-btn" onclick="pauseAndShowSettings()" onmouseenter="AudioSys.play('ui_hover')">⚙️</div>
+        <div id="game-settings-btn" onclick="pauseAndShowSettings()" onmouseenter="AudioSys && AudioSys.play('ui_hover')">⚙️</div>
 
         <div id="boss-hud">
             <div id="boss-name">警告：高能反应</div>
@@ -284,7 +371,7 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
         <h2 class="text-3xl neon-text-warn mb-4 orbitron">成就记录</h2>
         <div class="text-white mb-4 font-mono text-xs text-gray-400 bg-black/50 px-4 py-1 rounded">达成成就可获得研发资金与新型机体</div>
         <div class="w-full max-w-2xl px-4 h-96 overflow-y-auto bg-black/60 border border-yellow-900/30 p-4 shadow-[inset_0_0_20px_rgba(0,0,0,0.8)]" id="ach-list"></div>
-        <button class="btn mt-6" onclick="backToMenu()" onmouseenter="AudioSys.play('ui_hover')">返回主屏幕</button>
+        <button class="btn mt-6" onclick="backToMenu()" onmouseenter="AudioSys && AudioSys.play('ui_hover')">返回主屏幕</button>
     </div>
 
     <!-- 5. Settings/Shop/Guide/LevelUp/Result -->
@@ -294,37 +381,37 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
             <div class="setting-row"><span data-text="lbl_volume">主音量</span><input type="range" id="input-volume" min="0" max="100" value="50" oninput="setVolume(this.value)" class="accent-cyan-400"></div>
             <div class="setting-row"><span data-text="lbl_speed">引擎倍速</span><div class="flex items-center gap-2"><input type="range" id="input-speed" min="50" max="200" value="100" oninput="setSpeed(this.value)" class="accent-cyan-400"><span id="speed-display" class="text-cyan-400 font-mono w-10 text-right">1.0x</span></div></div>
             <div class="setting-row"><span data-text="lbl_graphics">画质设置</span><div class="flex items-center gap-2"><input type="range" id="input-graphics" min="0" max="2" value="1" oninput="setGraphics(this.value)" class="accent-cyan-400"><span id="graphics-display" class="text-cyan-400 font-mono w-16 text-right">中等</span></div></div>
-            <!-- 新增：界面大小控制滑块 -->
+            <!-- 界面大小控制滑块 -->
             <div class="setting-row"><span data-text="lbl_uiscale">界面缩放</span><div class="flex items-center gap-2"><input type="range" id="input-uiscale" min="50" max="130" value="85" oninput="setUIScale(this.value)" class="accent-cyan-400"><span id="uiscale-display" class="text-cyan-400 font-mono w-10 text-right">0.85x</span></div></div>
 
-            <div class="setting-row justify-center mt-6 border-none w-full"><button class="btn w-full !border-purple-600 !text-purple-400 hover:!bg-purple-600 hover:!text-white" onclick="showGuide()" data-text="btn_guide" onmouseenter="AudioSys.play('ui_hover')">战术数据库</button></div>
+            <div class="setting-row justify-center mt-6 border-none w-full"><button class="btn w-full !border-purple-600 !text-purple-400 hover:!bg-purple-600 hover:!text-white" onclick="showGuide()" data-text="btn_guide" onmouseenter="AudioSys && AudioSys.play('ui_hover')">战术数据库</button></div>
             <div class="setting-row justify-center mt-2 border-none w-full">
-                <button id="btn-save-quit" class="btn w-full !border-red-600 !text-red-500 hover:!bg-red-600 hover:!text-white" onclick="saveAndExit()" onmouseenter="AudioSys.play('ui_hover')">休眠并返回</button>
+                <button id="btn-save-quit" class="btn w-full !border-red-600 !text-red-500 hover:!bg-red-600 hover:!text-white" onclick="saveAndExit()" onmouseenter="AudioSys && AudioSys.play('ui_hover')">休眠并返回</button>
             </div>
             <div class="setting-row justify-center mt-2 border-none w-full">
-                <button class="btn w-full !border-red-900 !text-red-700 hover:!bg-red-900 hover:!text-white" onclick="triggerResetSave()" onmouseenter="AudioSys.play('ui_hover')">擦除所有记忆体</button>
+                <button class="btn w-full !border-red-900 !text-red-700 hover:!bg-red-900 hover:!text-white" onclick="triggerResetSave()" onmouseenter="AudioSys && AudioSys.play('ui_hover')">擦除所有记忆体</button>
             </div>
         </div>
-        <button id="settings-back-btn" class="btn mt-8" onclick="backToMenu()" data-text="btn_back" onmouseenter="AudioSys.play('ui_hover')">返回</button>
+        <button id="settings-back-btn" class="btn mt-8" onclick="backToMenu()" data-text="btn_back" onmouseenter="AudioSys && AudioSys.play('ui_hover')">返回</button>
     </div>
 
     <div id="shop-screen" class="screen">
         <h2 class="text-3xl neon-text-warn mb-2 orbitron" data-text="title_hangar">机库改造</h2>
         <div class="text-white mb-6 font-mono bg-black/50 px-6 py-2 rounded-full border border-yellow-900/50 shadow-[0_0_10px_rgba(255,234,0,0.1)]"><span data-text="lbl_balance" class="text-gray-400">可用资金</span>: <span id="shop-gold" class="neon-text-warn text-xl font-bold">0</span></div>
         <div class="grid-box" id="shop-container"></div>
-        <button class="btn mt-4" onclick="backToMenu()" data-text="btn_back" onmouseenter="AudioSys.play('ui_hover')">返回</button>
+        <button class="btn mt-4" onclick="backToMenu()" data-text="btn_back" onmouseenter="AudioSys && AudioSys.play('ui_hover')">返回</button>
     </div>
 
     <div id="guide-screen" class="screen">
         <div class="tab-nav">
-            <button class="tab-btn active" onclick="switchTab('ships')" onmouseenter="AudioSys.play('ui_hover')">机体</button>
-            <button class="tab-btn" onclick="switchTab('weapons')" onmouseenter="AudioSys.play('ui_hover')">武器</button>
-            <button class="tab-btn" onclick="switchTab('passives')" onmouseenter="AudioSys.play('ui_hover')">芯片</button>
-            <button class="tab-btn" onclick="switchTab('evolution')" onmouseenter="AudioSys.play('ui_hover')">突破</button>
-            <button class="tab-btn" onclick="switchTab('enemies')" onmouseenter="AudioSys.play('ui_hover')">敌军</button>
+            <button class="tab-btn active" onclick="switchTab('ships')" onmouseenter="AudioSys && AudioSys.play('ui_hover')">机体</button>
+            <button class="tab-btn" onclick="switchTab('weapons')" onmouseenter="AudioSys && AudioSys.play('ui_hover')">武器</button>
+            <button class="tab-btn" onclick="switchTab('passives')" onmouseenter="AudioSys && AudioSys.play('ui_hover')">芯片</button>
+            <button class="tab-btn" onclick="switchTab('evolution')" onmouseenter="AudioSys && AudioSys.play('ui_hover')">突破</button>
+            <button class="tab-btn" onclick="switchTab('enemies')" onmouseenter="AudioSys && AudioSys.play('ui_hover')">敌军</button>
         </div>
         <div id="guide-content" class="w-full max-w-lg overflow-y-auto px-4 h-96 bg-black/60 border border-cyan-900/30 p-4 shadow-[inset_0_0_20px_rgba(0,0,0,0.8)]"></div>
-        <button class="btn mt-6" onclick="showSettings()" onmouseenter="AudioSys.play('ui_hover')">返回终端</button>
+        <button class="btn mt-6" onclick="showSettings()" onmouseenter="AudioSys && AudioSys.play('ui_hover')">返回终端</button>
     </div>
 
     <div id="levelup-screen" class="screen" style="background:rgba(2,2,5,0.95); backdrop-filter: blur(10px);">
@@ -336,7 +423,7 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
         </div>
 
         <div class="flex flex-wrap gap-6 justify-center w-full max-w-5xl" id="upgrade-container"></div>
-        <button id="reroll-btn" class="btn text-sm mt-12 !border-gray-400 !text-gray-300 hover:!bg-gray-200 hover:!text-black" onclick="rerollUpgrades()" onmouseenter="AudioSys.play('ui_hover')">重构选项</button>
+        <button id="reroll-btn" class="btn text-sm mt-12 !border-gray-400 !text-gray-300 hover:!bg-gray-200 hover:!text-black" onclick="rerollUpgrades()" onmouseenter="AudioSys && AudioSys.play('ui_hover')">重构选项</button>
     </div>
 
     <div id="result-screen" class="screen">
@@ -349,7 +436,7 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
         </div>
         
         <div id="result-unlocks" class="text-center mb-8 min-h-[40px] font-bold text-lg leading-loose"></div>
-        <button class="btn w-64 text-lg" onclick="backToMenu()" data-text="btn_return" onmouseenter="AudioSys.play('ui_hover')">返回母舰</button>
+        <button class="btn w-64 text-lg" onclick="backToMenu()" data-text="btn_return" onmouseenter="AudioSys && AudioSys.play('ui_hover')">返回母舰</button>
     </div>
 
     <canvas id="gameCanvas"></canvas>
@@ -527,12 +614,14 @@ const SafeStorage = { data: {}, getItem(key) { return this.data[key] || null; },
 let storage = SafeStorage; try { if (typeof localStorage !== 'undefined') { localStorage.setItem('__test', '1'); localStorage.removeItem('__test'); storage = localStorage; } } catch(e) {}
 
 let saveData = JSON.parse(storage.getItem('ronin_v25_save')) || { 
-    gold: 0, upgrades: {}, unlocks: { easy:true, normal:false, hard:false, endless:false, ach_endless_30:false, win_easy: false, win_normal: false }, achievements: [], currentRun: null 
+    gold: 0, upgrades: {}, unlocks: { easy:true, normal:false, hard:false, endless:false, ach_endless_30:false, win_easy: false, win_normal: false }, achievements: [], currentRun: null, bestEndlessWave: 0, nickname: ''
 };
 if (!saveData.settings) { saveData.settings = { volume: 0.5, speed: 1.0, graphics: 1, uiScale: 0.85 }; }
 if (saveData.settings.uiScale === undefined) { saveData.settings.uiScale = 0.85; }
 let settings = saveData.settings;
 if (saveData.unlocks.win_easy === undefined) saveData.unlocks.win_easy = saveData.unlocks.normal; if (saveData.unlocks.win_normal === undefined) saveData.unlocks.win_normal = saveData.unlocks.hard;
+if (saveData.bestEndlessWave === undefined) saveData.bestEndlessWave = 0;
+if (saveData.nickname === undefined) saveData.nickname = '';
 
 if (saveData.upgrades) {
     for (let key in SHOP_CONFIG) {
@@ -542,7 +631,6 @@ if (saveData.upgrades) {
     }
 }
 
-// 核心更新：在游戏初始化时自动挂载根字号控制
 document.documentElement.style.fontSize = (settings.uiScale * 16) + 'px';
 
 function saveGame() { 
@@ -1575,7 +1663,6 @@ function showSettings() {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active')); 
     document.getElementById('settings-screen').classList.add('active'); 
     
-    // 初始化设置面板中的滑块与文本
     document.getElementById('input-volume').value = settings.volume * 100;
     document.getElementById('input-speed').value = settings.speed * 100;
     document.getElementById('speed-display').innerText = settings.speed.toFixed(1) + 'x';
@@ -1600,9 +1687,80 @@ function saveRunState() { if (gameState === 'gameover') return; saveData.current
 function saveAndExit() { if (gameState === 'paused') { saveRunState(); enemies = []; activeProjectiles = []; pickups = []; backToMenu(); } }
 function checkRunAndLaunch() { AudioSys.init(); AudioSys.play('ui_click'); if (saveData.currentRun) { loadRunState(); } else { openShipSelect(); } }
 function backToMenu() { gameState = 'menu'; document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('main-menu').classList.add('active'); document.getElementById('hud-layer').style.display = 'none'; updateUI(); AudioSys.playMusic('menu'); }
-function loadRunState() { const run = saveData.currentRun; if (!run) return; currentMode = run.mode; gameWave = run.wave; runStats = run.stats; currentShip = run.player.type; activeBoss = null; player = new Player(currentShip); player.hp = run.player.hp; player.maxHp = run.player.maxHp; player.shieldHp = run.player.shieldHp !== undefined ? run.player.shieldHp : 0; player.shieldTimer = run.player.shieldTimer !== undefined ? run.player.shieldTimer : 0; player.xp = run.player.xp; player.level = run.player.level; player.nextLvl = run.player.nextLvl; player.gold = run.player.gold; player.bombCharge = run.player.bomb; player.weapons = run.player.weapons; player.passives = run.player.passives; player.rerolls = run.player.rerolls; player.rerollCost = run.player.rerollCost || 100; player.lbDmgBonus = run.player.lbDmgBonus || 0; waveTimer = 0; freezeTimer = 0; isWaveBossActive = false; endlessEventTimer = 0; endlessNextEventTime = 30 + Math.random() * 30; enemies = []; activeProjectiles = []; pickups = []; document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('hud-layer').style.display='block'; gameState = 'playing'; AudioSys.stopMusic(); gameLoop(); }
 
-// ======================== 新增随机事件系统 ========================
+// --- 无尽排行榜系统逻辑 ---
+async function showLeaderboard() {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('leaderboard-screen').classList.add('active');
+    document.getElementById('lb-personal-best').innerText = saveData.bestEndlessWave || 0;
+    document.getElementById('lb-nickname').value = saveData.nickname || "";
+    document.getElementById('lb-status').innerText = "";
+    
+    const list = document.getElementById('lb-list');
+    list.innerHTML = '<div class="text-center text-gray-500 text-sm mt-10 animate-pulse">连接星际网络...</div>';
+
+    if (window.FirebaseAPI && window.FirebaseAPI.ready) {
+        const data = await window.FirebaseAPI.getLeaderboard();
+        list.innerHTML = '';
+        if (data.length === 0) {
+            list.innerHTML = '<div class="text-center text-gray-500 text-sm mt-10">暂无记录，去创造历史吧！</div>';
+        } else {
+            data.forEach((entry, idx) => {
+                let rankColor = 'text-gray-400';
+                if(idx === 0) rankColor = 'text-yellow-400 text-lg neon-text-warn';
+                else if(idx === 1) rankColor = 'text-gray-300 text-base';
+                else if(idx === 2) rankColor = 'text-orange-400 text-base';
+                
+                let safeName = entry.nickname.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+                list.innerHTML += `<div class="flex justify-between items-center py-2 border-b border-gray-800">
+                    <div class="flex items-center gap-3">
+                        <span class="font-black orbitron w-6 text-center ${rankColor}">#${idx+1}</span>
+                        <span class="font-bold text-cyan-100">${safeName}</span>
+                    </div>
+                    <span class="font-mono text-cyan-400 font-bold">${entry.wave} 波</span>
+                </div>`;
+            });
+        }
+    } else {
+        list.innerHTML = '<div class="text-center text-red-500 text-sm mt-10 font-bold">无法连接到星际排行榜服务器<br>请检查网络连接</div>';
+    }
+}
+
+async function submitScore() {
+    const nick = document.getElementById('lb-nickname').value.trim();
+    const bestWave = saveData.bestEndlessWave || 0;
+    
+    if (!nick) return showLbStatus('请输入代号', 'red');
+    if (bestWave <= 0) return showLbStatus('尚无无尽模式成绩', 'red');
+    
+    saveData.nickname = nick;
+    saveGame();
+    
+    showLbStatus('正在上传数据...', 'cyan');
+    if (window.FirebaseAPI && window.FirebaseAPI.ready) {
+        let success = await window.FirebaseAPI.uploadScore(nick, bestWave);
+        if(success) {
+            showLbStatus('记录已同步至云端！', 'green');
+            setTimeout(() => { showLeaderboard(); }, 1000); // 刷新列表
+        } else {
+            showLbStatus('数据传输异常，请重试', 'red');
+        }
+    } else {
+        showLbStatus('网络未就绪', 'red');
+    }
+}
+
+function showLbStatus(msg, color) {
+    const el = document.getElementById('lb-status');
+    el.innerText = msg;
+    if (color === 'red') el.style.color = '#ff0055';
+    else if (color === 'green') el.style.color = '#00ffaa';
+    else el.style.color = '#00e5ff';
+}
+// ---
+
+function loadRunState() { const run = saveData.currentRun; if (!run) return; currentMode = run.mode; gameWave = run.wave; runStats = run.stats; currentShip = run.player.type; activeBoss = null; player = new Player(currentShip); player.hp = run.player.hp; player.maxHp = run.player.maxHp; player.shieldHp = run.player.shieldHp !== undefined ? run.player.shieldHp : 0; player.shieldTimer = run.player.shieldTimer !== undefined ? run.player.shieldTimer : 0; player.xp = run.player.xp; player.level = run.player.level; player.nextLvl = run.player.nextLvl; player.gold = run.player.gold; player.bombCharge = run.player.bomb; player.weapons = run.player.weapons; player.passives = run.player.passives; player.rerolls = run.player.rerolls; player.rerollCost = run.player.rerollCost || 100; player.lbDmgBonus = run.player.lbDmgBonus || 0; waveTimer = 0; freezeTimer = 0; isWaveBossActive = false; endlessEventTimer = 0; endlessNextEventTime = 30 + Math.random() * 30; enemies = []; activeProjectiles = []; pickups = []; document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('hud-layer').style.display='block'; gameState = 'playing'; gameLoop(); }
+
 function triggerRandomEvent() {
     const events = ['meteor', 'blackhole', 'swarm', 'prism', 'airdrop'];
     const ev = events[Math.floor(Math.random() * events.length)];
@@ -1723,7 +1881,6 @@ function gameLoop() {
     player.update(spd);
     
     activeProjectiles.forEach(p => {
-        // 放宽对黑洞的屏幕外检测，因为它可能非常大
         if (p.type !== 'enemy_laser' && p.type !== 'blackhole' && (p.x < -200 || p.x > canvas.width + 200 || p.y < -200 || p.y > canvas.height + 200)) {
             p.marked = true; return; 
         }
@@ -1987,7 +2144,6 @@ function gameLoop() {
     pickups.forEach(p => {
         if (p.type !== 'xp' || p.magnetized) { if (!p.magnetized) p.y += 1 * spd; } else { p.y += 2 * spd; }
         
-        // 彻底修复掉落物坠出屏幕后不被清除的问题
         if (p.y > canvas.height + 150) p.marked = true;
 
         let dx = player.x - p.x; let dy = player.y - p.y; let distSq = dx*dx + dy*dy;
@@ -2013,7 +2169,6 @@ function gameLoop() {
     ctx.clearRect(0,0,canvas.width,canvas.height);
     ctx.save(); ctx.translate(shakeX, shakeY);
 
-    // 绘制动态星空背景
     updateAndDrawStars(ctx, spd);
 
     if (freezeTimer > 0) { ctx.fillStyle = `rgba(0, 229, 255, ${Math.min(0.1, freezeTimer/1000)})`; ctx.fillRect(0,0,canvas.width,canvas.height); }
@@ -2117,7 +2272,7 @@ function gameLoop() {
             ctx.save();
             ctx.translate(p.x, p.y);
             
-            let alpha = Math.min(1, p.life / 60); // 消失时淡出
+            let alpha = Math.min(1, p.life / 60); 
             ctx.globalAlpha = alpha;
             
             let coreR = p.radius * 0.35 + Math.sin(frameCount * 0.05) * 2;
@@ -2235,6 +2390,13 @@ function createExplosion(x,y,c,n) {
 function updateUI() { 
     document.getElementById('menu-gold').innerText=saveData.gold; document.getElementById('shop-gold').innerText=saveData.gold;
     const startBtn = document.getElementById('btn-start-mission'); const hangarBtn = document.getElementById('btn-hangar'); const abandonBtn = document.getElementById('btn-abandon-mission');
+    const lbBtn = document.getElementById('btn-leaderboard-container');
+    
+    // 如果无尽模式已解锁，则显示排行榜入口
+    if (lbBtn) {
+        lbBtn.style.display = saveData.unlocks.endless ? 'block' : 'none';
+    }
+
     if (saveData.currentRun) { startBtn.innerHTML = `<span>继续任务</span> <span class="text-xs opacity-50 group-hover:translate-x-1 transition">>>></span>`; startBtn.classList.add('!text-yellow-400', '!border-yellow-600', '!shadow-[0_0_15px_rgba(255,234,0,0.3)]'); hangarBtn.classList.add('locked'); hangarBtn.title = "任务进行中无法升级"; if(abandonBtn) abandonBtn.style.display = 'flex'; } 
     else { startBtn.innerHTML = `<span>开始任务</span> <span class="text-xs opacity-50 group-hover:translate-x-1 transition">>>></span>`; startBtn.classList.remove('!text-yellow-400', '!border-yellow-600', '!shadow-[0_0_15px_rgba(255,234,0,0.3)]'); hangarBtn.classList.remove('locked'); hangarBtn.title = ""; if(abandonBtn) abandonBtn.style.display = 'none'; }
 }
@@ -2292,11 +2454,36 @@ function rerollUpgrades() {
     } 
 }
 
-function endGame(win) { gameState='gameover'; AudioSys.playMusic('menu'); document.getElementById('result-screen').classList.add('active'); saveData.currentRun = null; let earnings = player.gold; let displayWave = win && currentMode !== 'endless' ? MODES[currentMode].maxWave : gameWave - 1; const context = { win, mode: currentMode, wave: displayWave, kills: runStats.kills, goldEarned: runStats.goldEarned, hit: runStats.hit, hpPct: player.hp / player.maxHp }; let newUnlocks = []; ACHIEVEMENTS.forEach(ach => { if (!saveData.achievements.includes(ach.id) && ach.check(context)) { saveData.achievements.push(ach.id); saveData.gold += ach.reward; earnings += ach.reward; newUnlocks.push(`<span class="text-yellow-400" style="text-shadow:0 0 5px #ffea00">🏆 成就解锁：${ach.title} (+${ach.reward})</span>`); } }); if (win) { if (currentMode === 'easy') { if (!saveData.unlocks.normal) { saveData.unlocks.normal = true; newUnlocks.push(`<span class="text-cyan-400" style="text-shadow:0 0 5px #00e5ff">🔓 模式解锁：老兵</span>`); } if (!saveData.unlocks.win_easy) { saveData.unlocks.win_easy = true; newUnlocks.push(`<span class="text-green-400" style="text-shadow:0 0 5px #00ffaa">✈️ 机体解锁：堡垒</span>`); } } if (currentMode === 'normal') { if (!saveData.unlocks.hard) { saveData.unlocks.hard = true; newUnlocks.push(`<span class="text-cyan-400" style="text-shadow:0 0 5px #00e5ff">🔓 模式解锁：精英</span>`); } if (!saveData.unlocks.win_normal) { saveData.unlocks.win_normal = true; newUnlocks.push(`<span class="text-yellow-400" style="text-shadow:0 0 5px #ffea00">✈️ 机体解锁：闪电</span>`); } } if (currentMode === 'hard' && !saveData.unlocks.endless) { saveData.unlocks.endless = true; newUnlocks.push(`<span class="text-cyan-400" style="text-shadow:0 0 5px #00e5ff">🔓 模式解锁：无尽</span>`); } } 
-    if (saveData.achievements.includes('endless_30') && !saveData.unlocks.ach_endless_30) { saveData.unlocks.ach_endless_30 = true; newUnlocks.push(`<span class="text-purple-400" style="text-shadow:0 0 5px #d500f9">✈️ 机体解锁：幽影</span>`); }
-    if (saveData.achievements.includes('endless_50') && !saveData.unlocks.ach_endless_50) { saveData.unlocks.ach_endless_50 = true; newUnlocks.push(`<span class="text-cyan-200" style="text-shadow:0 0 5px #00ffff">✈️ 机体解锁：激光者</span>`); }
-    if (saveData.achievements.includes('endless_100') && !saveData.unlocks.ach_endless_100) { saveData.unlocks.ach_endless_100 = true; newUnlocks.push(`<span class="text-white" style="text-shadow:0 0 10px #ffffff">✈️ 终极机体解锁：神明</span>`); }
-    saveData.gold += player.gold; saveGame(); document.getElementById('result-title').innerText = win ? "任务完成" : "任务失败"; document.getElementById('result-title').style.color = win ? "#00ffaa" : "#ff0055"; document.getElementById('result-wave').innerText = displayWave; document.getElementById('result-gold').innerText = earnings; document.getElementById('result-unlocks').innerHTML = newUnlocks.join("<br>"); }
+function endGame(win) { 
+    gameState='gameover'; 
+    AudioSys.playMusic('menu'); 
+    document.getElementById('result-screen').classList.add('active'); 
+    saveData.currentRun = null; 
+    let earnings = player.gold; 
+    let displayWave = win && currentMode !== 'endless' ? MODES[currentMode].maxWave : gameWave - 1; 
+    const context = { win, mode: currentMode, wave: displayWave, kills: runStats.kills, goldEarned: runStats.goldEarned, hit: runStats.hit, hpPct: player.hp / player.maxHp }; 
+    let newUnlocks = []; 
+    ACHIEVEMENTS.forEach(ach => { if (!saveData.achievements.includes(ach.id) && ach.check(context)) { saveData.achievements.push(ach.id); saveData.gold += ach.reward; earnings += ach.reward; newUnlocks.push(`<span class="text-yellow-400" style="text-shadow:0 0 5px #ffea00">🏆 成就解锁：${ach.title} (+${ach.reward})</span>`); } }); 
+    if (win) { 
+        if (currentMode === 'easy') { if (!saveData.unlocks.normal) { saveData.unlocks.normal = true; newUnlocks.push(`<span class="text-cyan-400" style="text-shadow:0 0 5px #00e5ff">🔓 模式解锁：老兵</span>`); } if (!saveData.unlocks.win_easy) { saveData.unlocks.win_easy = true; newUnlocks.push(`<span class="text-green-400" style="text-shadow:0 0 5px #00ffaa">✈️ 机体解锁：堡垒</span>`); } } 
+        if (currentMode === 'normal') { if (!saveData.unlocks.hard) { saveData.unlocks.hard = true; newUnlocks.push(`<span class="text-cyan-400" style="text-shadow:0 0 5px #00e5ff">🔓 模式解锁：精英</span>`); } if (!saveData.unlocks.win_normal) { saveData.unlocks.win_normal = true; newUnlocks.push(`<span class="text-yellow-400" style="text-shadow:0 0 5px #ffea00">✈️ 机体解锁：闪电</span>`); } } 
+        if (currentMode === 'hard' && !saveData.unlocks.endless) { saveData.unlocks.endless = true; newUnlocks.push(`<span class="text-cyan-400" style="text-shadow:0 0 5px #00e5ff">🔓 模式解锁：无尽</span>`); } 
+    } 
+    
+    // 如果是无尽模式且突破了最高记录
+    if (currentMode === 'endless' && displayWave > (saveData.bestEndlessWave || 0)) {
+        saveData.bestEndlessWave = displayWave;
+        newUnlocks.push(`<span class="text-yellow-400 font-bold" style="text-shadow:0 0 10px #ffea00">📈 新的无尽记录：${displayWave} 波！</span>`);
+        
+        // 如果玩家已经设置了昵称，自动上传成绩
+        if (saveData.nickname && window.FirebaseAPI && window.FirebaseAPI.ready) {
+            window.FirebaseAPI.uploadScore(saveData.nickname, displayWave);
+            newUnlocks.push(`<span class="text-cyan-400 font-bold" style="text-shadow:0 0 10px #00e5ff">☁️ 记录已同步至星际网络！</span>`);
+        }
+    }
+
+    saveData.gold += player.gold; saveGame(); document.getElementById('result-title').innerText = win ? "任务完成" : "任务失败"; document.getElementById('result-title').style.color = win ? "#00ffaa" : "#ff0055"; document.getElementById('result-wave').innerText = displayWave; document.getElementById('result-gold').innerText = earnings; document.getElementById('result-unlocks').innerHTML = newUnlocks.join("<br>"); 
+}
 
 function openShipSelect() { document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('ship-select').classList.add('active'); updateShipGrid(); renderModeButtons(); }
 function renderModeButtons() { const c = document.getElementById('mode-buttons'); c.innerHTML = ''; for (const [k, conf] of Object.entries(MODES)) { let unlocked = k === 'easy' || saveData.unlocks[k] !== false; let btn = document.createElement('button'); btn.className = `btn py-2 px-4 text-xs m-0 border-none ${unlocked ? (currentMode===k?'bg-cyan-600 text-white shadow-[0_0_10px_#00e5ff]':'bg-gray-800') : 'locked bg-gray-900 text-gray-600'}`; btn.innerHTML = unlocked ? conf.name : `🔒 ${conf.name}`; if (unlocked) btn.onclick = () => { AudioSys.play('ui_click'); currentMode = k; renderModeButtons(); document.getElementById('mode-desc').innerText = conf.desc; }; c.appendChild(btn); } document.getElementById('mode-desc').innerText = MODES[currentMode].desc; }
