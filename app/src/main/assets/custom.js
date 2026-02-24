@@ -3,7 +3,7 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>星际浪人 v1.4.0 - 神明再临</title>
+    <title>星际浪人 v1.4.7 - 神明再临</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700;900&family=Noto+Sans+SC:wght@400;700;900&display=swap');
@@ -168,6 +168,22 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
         #boss-hp-text { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) skewX(15deg); font-size: 0.6875rem; color: #fff; font-weight: bold; font-family: monospace; text-shadow: 1px 1px 0 #000, 0 0 5px #fff; z-index: 10; }
 
         #player-hud { position: absolute; bottom: 1.25rem; left: 50%; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; z-index: 40; }
+        .hp-row { display: flex; align-items: center; gap: 0.5rem; }
+        .hp-row .hp-container { margin-top: 0; }
+        #hud-level-text {
+            min-width: 3.25rem;
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: 900;
+            font-family: 'Orbitron', 'Noto Sans SC', sans-serif;
+            color: #ffd84d;
+            text-shadow: 0 0 6px rgba(255, 216, 77, 0.75);
+            border: 0.0625rem solid rgba(255, 216, 77, 0.65);
+            background: rgba(45, 30, 0, 0.7);
+            padding: 0.1rem 0.35rem;
+            border-radius: 0.25rem;
+            letter-spacing: 0.02em;
+        }
         .hp-container { width: 15rem; height: 0.875rem; background: #220000; transform: skewX(-20deg); border: 0.0625rem solid #ff0055; margin-top: 0.25rem; position: relative; box-shadow: 0 0 15px rgba(255,0,85,0.2); }
         .hp-fill { height: 100%; background: linear-gradient(90deg, #ff0000, #ff5555); width: 100%; transition: width 0.2s; box-shadow: 0 0 15px #ff0000; }
         .shield-container { width: 15rem; height: 0.5rem; background: rgba(0, 50, 50, 0.5); transform: skewX(-20deg); border: 0.0625rem solid #00e5ff; margin-bottom: 0.125rem; position: relative; display: none; box-shadow: 0 0 10px rgba(0,229,255,0.2); }
@@ -301,7 +317,7 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
             <div class="text-xl tracking-[0.8em] text-cyan-300 font-bold mt-[-5px] pl-4 text-shadow-sm">星际战机</div>
         </div>
         
-        <p class="text-xs text-gray-400 mb-10 font-mono tracking-widest border-t border-b border-cyan-900/50 py-2 w-64 text-center bg-black/30">系统 V1.4.0 // 神明再临</p>
+        <p class="text-xs text-gray-400 mb-10 font-mono tracking-widest border-t border-b border-cyan-900/50 py-2 w-64 text-center bg-black/30">系统 V1.4.7 // 神明再临</p>
 
         <div class="flex flex-col items-center w-full max-w-sm gap-4 relative z-10">
             <button id="btn-start-mission" class="btn w-full flex justify-between items-center group" onclick="checkRunAndLaunch()" data-text="btn_launch" onmouseenter="AudioSys && AudioSys.play('ui_hover')">
@@ -407,7 +423,10 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
 
         <div id="player-hud">
             <div id="hud-shield-c" class="shield-container"><div class="shield-fill" id="hud-shield-bar"></div><div class="bar-particle-layer" id="hud-shield-particles"></div></div>
-            <div class="hp-container"><div class="hp-fill" id="hud-hp-bar"></div><div class="bar-particle-layer" id="hud-hp-particles"></div></div>
+            <div class="hp-row">
+                <span id="hud-level-text">Lv.1</span>
+                <div class="hp-container"><div class="hp-fill" id="hud-hp-bar"></div><div class="bar-particle-layer" id="hud-hp-particles"></div></div>
+            </div>
             <span id="hud-hp-text" class="text-xs text-white font-mono mt-1 font-bold shadow-black drop-shadow-md">100 / 100</span>
             <span id="hud-revive-text" class="text-xs text-yellow-400 font-mono mt-1 font-bold shadow-black drop-shadow-md hidden">复活: 0</span>
         </div>
@@ -1531,7 +1550,7 @@ class Enemy {
     }
     
     update(spd) { 
-        const canMove = freezeTimer <= 0; 
+        const canMove = freezeTimer <= 0 || this.isBoss || this.role === 'elite'; 
         let slowFactor = 1.0; if (player && player.passives.speed) { slowFactor = Math.max(0.1, 1.0 - (player.passives.speed * 0.05)); }
         
         let modeDmgMult = 1.0; 
@@ -1549,24 +1568,53 @@ class Enemy {
         if (canMove) this.tick += spd;
 
         if (this.type === 'boss') {
-            if (this.state === 'entering') { if(canMove) this.y += this.vy * spd * slowFactor; if (this.y >= 150) this.state = 'fight'; } 
+            const hpPct = this.hp / this.maxHp;
+            if (this.state === 'entering') { if(canMove) this.y += this.vy * spd * slowFactor; if (this.y >= 150) { this.state = 'fight'; this.tick = 0; } } 
             else if(canMove) {
-                this.x += (canvas.width/2 - this.x) * 0.01 * spd; this.x += Math.sin(frameCount * 0.02) * 2 * spd * slowFactor;
-                
-                if (this.tick > 400) { this.tick = 0; this.attackState = (this.attackState + 1) % 2; }
-                
-                if (this.attackState === 0) {
-                    if (this.tick % 8 < 1) {
-                        this.attackAngle += 0.2;
-                        for(let i=0; i<3; i++) {
-                            let a = this.attackAngle + (i * Math.PI*2/3);
-                            activeProjectiles.push({type:'enemy_bullet', team:'enemy', x:this.x, y:this.y, vx:Math.cos(a)*4, vy:Math.sin(a)*4, dmg:15 * dmgScale, color:'#d500f9', life:250});
+                if (hpPct <= 0.5) {
+                    if (this.phase !== 2) {
+                        this.phase = 2;
+                        this.color = '#ff002e';
+                        this.tick = 0;
+                        this.attackState = 0;
+                        showWarning("审判者狂暴过载");
+                        createExplosion(this.x, this.y, '#ff002e', 35);
+                        AudioSys.play('alarm');
+                    }
+                    this.angle += 0.16 * spd;
+                    this.x += (canvas.width/2 - this.x) * 0.012 * spd;
+                    this.x += Math.cos(this.angle * 0.6) * 4 * spd * slowFactor;
+
+                    if (this.tick % 5 < 1) {
+                        this.attackAngle += 0.26;
+                        for(let i=0; i<6; i++) {
+                            let a = this.attackAngle + (i * Math.PI*2/6);
+                            activeProjectiles.push({type:'enemy_bullet', team:'enemy', x:this.x, y:this.y, vx:Math.cos(a)*6.8, vy:Math.sin(a)*6.8, dmg:18 * dmgScale, color:'#ff003d', life:260});
                         }
                     }
-                } else if (this.attackState === 1) {
-                    if (this.tick === 10 || this.tick === 150) {
+                    if (this.tick % 120 < 1) {
                         AudioSys.play('alarm');
-                        activeProjectiles.push({type: 'enemy_laser', team: 'enemy', parent: this, x: this.x, y: this.y, angle: angleToPlayer, w: 25, dmg: 20 * dmgScale, warnTime: 60, activeTime: 20, color: '#ff0055', tracking: true});
+                        activeProjectiles.push({type: 'enemy_laser', team: 'enemy', parent: this, x: this.x, y: this.y, angle: angleToPlayer, w: 32, dmg: 26 * dmgScale, warnTime: 45, activeTime: 28, color: '#ff0033', tracking: true});
+                    }
+                } else {
+                    this.color = '#ffffff';
+                    this.x += (canvas.width/2 - this.x) * 0.01 * spd; this.x += Math.sin(frameCount * 0.02) * 2 * spd * slowFactor;
+                    
+                    if (this.tick > 360) { this.tick = 0; this.attackState = (this.attackState + 1) % 2; }
+                    
+                    if (this.attackState === 0) {
+                        if (this.tick % 6 < 1) {
+                            this.attackAngle += 0.22;
+                            for(let i=0; i<3; i++) {
+                                let a = this.attackAngle + (i * Math.PI*2/3);
+                                activeProjectiles.push({type:'enemy_bullet', team:'enemy', x:this.x, y:this.y, vx:Math.cos(a)*4.6, vy:Math.sin(a)*4.6, dmg:16 * dmgScale, color:'#d500f9', life:250});
+                            }
+                        }
+                    } else if (this.attackState === 1) {
+                        if (Math.abs(this.tick - 10) < 1 || Math.abs(this.tick - 130) < 1) {
+                            AudioSys.play('alarm');
+                            activeProjectiles.push({type: 'enemy_laser', team: 'enemy', parent: this, x: this.x, y: this.y, angle: angleToPlayer, w: 25, dmg: 20 * dmgScale, warnTime: 60, activeTime: 20, color: '#ff0055', tracking: true});
+                        }
                     }
                 }
             }
@@ -1675,26 +1723,34 @@ class Enemy {
             else if(canMove) {
                 this.x += (canvas.width/2 - this.x) * 0.01 * spd; this.x += Math.cos(frameCount * 0.01) * 1.5 * spd * slowFactor;
                 
-                // 强化机制1：双层交错弹幕墙
-                const wallCycle = 180;
-                const wallLayerOffset = 18;
-                if (this.combatActive && this.tick % wallCycle === 0) this.wallAngle = angleToPlayer;
-                if (this.combatActive && (this.tick % wallCycle === 0 || this.tick % wallCycle === wallLayerOffset)) {
+                // 强化机制1：单层弹幕墙（保留缺口）
+                const wallCycle = 120;
+                const wallTick = this.tick % wallCycle;
+                if (this.combatActive && wallTick < 1) this.wallAngle = angleToPlayer;
+                if (this.combatActive && wallTick < 1) {
                     AudioSys.play('shoot_heavy');
-                    let isLayer2 = this.tick % wallCycle === wallLayerOffset;
                     let baseA = this.wallAngle || angleToPlayer;
-                    let gapPos = isLayer2 ? 2 : -2; // 缺口左右交错
-                    let angleShift = isLayer2 ? 0.06 : 0;
+                    let gapPos = (Math.floor(this.tick / wallCycle) % 2 === 0) ? -3 : 3;
+                    let angleShift = 0;
                     
                     for(let i=-9; i<=9; i++) {
-                        if (Math.abs(i - gapPos) <= 1.5) continue; 
+                        if (Math.abs(i - gapPos) <= 2.5) continue; 
                         let a = baseA + (i * 0.12) + angleShift; 
-                        activeProjectiles.push({type:'enemy_bullet', team:'enemy', x:this.x, y:this.y+20, vx:Math.cos(a)*4, vy:Math.sin(a)*4, dmg:15 * dmgScale, color:'#ff3d00', life:300}); 
+                        activeProjectiles.push({type:'enemy_bullet', team:'enemy', x:this.x, y:this.y+20, vx:Math.cos(a)*3.8, vy:Math.sin(a)*3.8, dmg:15 * dmgScale, color:'#ff3d00', life:290}); 
+                    }
+                }
+                if (this.combatActive && this.tick % 90 < 1) {
+                    const altGap = (Math.floor(this.tick / 90) % 2 === 0) ? -3 : 3;
+                    for(let i=-5; i<=5; i++) {
+                        if (Math.abs(i) <= 1) continue; // 中央安全通道
+                        if (Math.abs(i - altGap) <= 1) continue; // 侧向交错缺口
+                        let a = angleToPlayer + i * 0.12;
+                        activeProjectiles.push({type:'enemy_bullet', team:'enemy', x:this.x, y:this.y+10, vx:Math.cos(a)*4.4, vy:Math.sin(a)*4.4, dmg:14 * dmgScale, color:'#ff6644', life:210});
                     }
                 }
                 
                 // 强化机制2：重型追踪自爆群（分左中右三方向，高血量）
-                if (this.combatActive && this.tick % 300 === 0) { 
+                if (this.combatActive && this.tick % 220 < 1) { 
                     AudioSys.play('alarm');
                     let angles = [angleToPlayer - 1.2, angleToPlayer, angleToPlayer + 1.2];
                     for(let k=0; k<3; k++) { 
@@ -2978,6 +3034,7 @@ function updateUI() {
 
 function updateHUD() { 
     document.getElementById('hud-hp-bar').style.width=(player.hp/player.maxHp*100)+'%'; document.getElementById('hud-hp-text').innerText = `${Math.ceil(player.hp)} / ${Math.ceil(player.maxHp)}`;
+    const lvlEl = document.getElementById('hud-level-text'); if (lvlEl) lvlEl.innerText = `Lv.${player.level}`;
     const reviveEl = document.getElementById('hud-revive-text');
     if (player.revivesMax > 0) { reviveEl.style.display = 'block'; reviveEl.innerText = `复活: ${player.revivesLeft} / ${player.revivesMax}`; } else { reviveEl.style.display = 'none'; }
     const sBar = document.getElementById('hud-shield-bar'); const sCont = document.getElementById('hud-shield-c');
@@ -3031,6 +3088,9 @@ function rerollUpgrades() {
 
 function endGame(win) { 
     gameState='gameover'; 
+    activeBoss = null;
+    const bossHudEl = document.getElementById('boss-hud');
+    if (bossHudEl) bossHudEl.style.display = 'none';
     AudioSys.playMusic('menu'); 
     document.getElementById('result-screen').classList.add('active'); 
     saveData.currentRun = null; 
@@ -3162,7 +3222,7 @@ function renderShop() {
 }
 
 function showAchievements() { document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('ach-screen').classList.add('active'); const list = document.getElementById('ach-list'); list.innerHTML = ''; ACHIEVEMENTS.forEach(ach => { let isUnlocked = saveData.achievements.includes(ach.id); let div = document.createElement('div'); div.className = `ach-item ${isUnlocked ? 'unlocked' : ''}`; div.innerHTML = `<div class="ach-icon">${isUnlocked ? '🏆' : '🔒'}</div><div><div class="font-bold ${isUnlocked ? 'text-yellow-400' : 'text-gray-500'}">${ach.title}</div><div class="ach-desc">${ach.desc}</div></div><div class="ach-reward">+${ach.reward}</div>`; list.appendChild(div); }); }
-function launchGame(isNew = false) { document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('hud-layer').style.display='block'; if (isNew) { player=new Player(currentShip); gameWave = 1; waveTimer = 0; freezeTimer = 0; isWaveBossActive = false; endlessEventTimer = 0; endlessNextEventTime = 30 + Math.random() * 30; enemies = []; activeProjectiles = []; pickups = []; runStats = { kills: 0, goldEarned: 0, hit: false }; } gameState='playing'; AudioSys.stopMusic(); gameLoop(); }
+function launchGame(isNew = false) { document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('hud-layer').style.display='block'; activeBoss = null; const bossHudEl = document.getElementById('boss-hud'); if (bossHudEl) bossHudEl.style.display = 'none'; if (isNew) { player=new Player(currentShip); gameWave = 1; waveTimer = 0; freezeTimer = 0; isWaveBossActive = false; endlessEventTimer = 0; endlessNextEventTime = 30 + Math.random() * 30; enemies = []; activeProjectiles = []; pickups = []; runStats = { kills: 0, goldEarned: 0, hit: false }; } gameState='playing'; AudioSys.stopMusic(); gameLoop(); }
 function showGuide() { document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('guide-screen').classList.add('active'); switchTab('weapons'); }
 function setVolume(v) { settings.volume=v/100; AudioSys.setVolume(settings.volume); } 
 function setSpeed(v) { settings.speed=v/100; document.getElementById('speed-display').innerText=settings.speed.toFixed(1)+'x'; }
