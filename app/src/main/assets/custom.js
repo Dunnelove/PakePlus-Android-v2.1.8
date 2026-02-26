@@ -3,7 +3,7 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>星际浪人 v1.8.1 - 全面优化版</title>
+    <title>星际浪人 v1.8.4 - 终极优化版</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700;900&family=Noto+Sans+SC:wght@400;700;900&display=swap');
@@ -219,6 +219,7 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
             #shop-container .card div:nth-child(2) { font-size: 0.7rem; line-height: 1.2; margin: 0.25rem 0; min-height: 2.4em; }
             .btn { padding: 0.625rem 1.5625rem; font-size: 0.875rem; }
             #warning-overlay { top: 2.6rem; width: 96vw; }
+            #game-over-text { font-size: 36px !important; letter-spacing: 4px !important; }
         }
 
         .ach-item { display: flex; align-items: center; gap: 0.9375rem; padding: 0.9375rem; background: rgba(255,255,255,0.02); border: 0.0625rem solid #222; margin-bottom: 0.625rem; transition: all 0.3s; }
@@ -443,24 +444,49 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
         import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, collection, getDocs, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        window.FirebaseAPI = { ready: false };
+        window.FirebaseAPI = { ready: false, error: null, retryCount: 0, maxRetries: 3 };
         
-        try {
-            if (typeof __firebase_config !== 'undefined') {
-                const firebaseConfig = JSON.parse(__firebase_config);
+        const FALLBACK_CONFIG = {
+            apiKey: "AIzaSyDemoFallbackKeyForLocalTesting123",
+            authDomain: "ronin-game.firebaseapp.com",
+            projectId: "ronin-game",
+            storageBucket: "ronin-game.appspot.com"
+        };
+
+        async function initializeFirebase() {
+            try {
+                let firebaseConfig;
+                let appId;
+                
+                if (typeof __firebase_config !== 'undefined') {
+                    firebaseConfig = JSON.parse(__firebase_config);
+                    appId = typeof __app_id !== 'undefined' ? __app_id : 'ronin-app';
+                    console.log("Using Firebase Hosting config");
+                } else {
+                    console.warn("Firebase Hosting config not found, using fallback config");
+                    console.warn("Leaderboard may not work properly without proper Firebase setup");
+                    firebaseConfig = FALLBACK_CONFIG;
+                    appId = 'ronin-app';
+                }
+
                 const app = initializeApp(firebaseConfig);
                 const auth = getAuth(app);
                 const db = getFirestore(app);
-                const appId = typeof __app_id !== 'undefined' ? __app_id : 'ronin-app';
 
                 const initAuth = async () => {
-                    if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                        await signInWithCustomToken(auth, __initial_auth_token);
-                    } else {
-                        await signInAnonymously(auth);
+                    try {
+                        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                            await signInWithCustomToken(auth, __initial_auth_token);
+                        } else {
+                            await signInAnonymously(auth);
+                        }
+                    } catch (authError) {
+                        console.error("Auth initialization error:", authError);
+                        window.FirebaseAPI.error = "认证失败: " + (authError.code || authError.message);
                     }
                 };
-                initAuth();
+                
+                await initAuth();
 
                 onAuthStateChanged(auth, (user) => {
                     if (user) {
@@ -468,33 +494,67 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
                         window.FirebaseAPI.user = user;
                         window.FirebaseAPI.db = db;
                         window.FirebaseAPI.appId = appId;
+                        window.FirebaseAPI.error = null;
+                        console.log("Firebase connected successfully, user:", user.uid);
+                    } else {
+                        window.FirebaseAPI.ready = false;
+                        window.FirebaseAPI.error = "未登录";
                     }
                 });
 
                 window.FirebaseAPI.uploadScore = async (nickname, wave) => {
-                    if (!window.FirebaseAPI.ready) return false;
+                    if (!window.FirebaseAPI.ready) {
+                        console.error("Firebase not ready for upload");
+                        return { success: false, error: window.FirebaseAPI.error || "服务未连接" };
+                    }
                     try {
                         const docRef = doc(window.FirebaseAPI.db, 'artifacts', window.FirebaseAPI.appId, 'public', 'data', 'leaderboard', window.FirebaseAPI.user.uid);
                         await setDoc(docRef, { nickname, wave, uid: window.FirebaseAPI.user.uid, timestamp: Date.now() }, { merge: true });
-                        return true;
-                    } catch (e) { console.error("Firebase API Error:", e); return false; }
+                        console.log("Score uploaded successfully:", nickname, wave);
+                        return { success: true };
+                    } catch (e) {
+                        console.error("Firebase upload error:", e);
+                        return { success: false, error: e.message };
+                    }
                 };
 
                 window.FirebaseAPI.getLeaderboard = async () => {
-                    if (!window.FirebaseAPI.ready) return [];
+                    if (!window.FirebaseAPI.ready) {
+                        console.error("Firebase not ready for leaderboard");
+                        return [];
+                    }
                     try {
                         const colRef = collection(window.FirebaseAPI.db, 'artifacts', window.FirebaseAPI.appId, 'public', 'data', 'leaderboard');
                         const snap = await getDocs(colRef);
                         let data = [];
                         snap.forEach(d => data.push(d.data()));
-                        data.sort((a,b) => b.wave - a.wave); // Descending sort by wave
-                        return data.slice(0, 50); // Top 50 
-                    } catch (e) { console.error("Firebase API Error:", e); return []; }
+                        data.sort((a,b) => b.wave - a.wave);
+                        console.log("Leaderboard loaded:", data.length, "entries");
+                        return data.slice(0, 50);
+                    } catch (e) {
+                        console.error("Firebase leaderboard error:", e);
+                        return [];
+                    }
                 };
+
+                window.FirebaseAPI.retry = async function() {
+                    window.FirebaseAPI.retryCount++;
+                    if (window.FirebaseAPI.retryCount <= window.FirebaseAPI.maxRetries) {
+                        console.log(`Retrying Firebase connection (${window.FirebaseAPI.retryCount}/${window.FirebaseAPI.maxRetries})...`);
+                        await initializeFirebase();
+                        return true;
+                    }
+                    return false;
+                };
+
+            } catch(e) {
+                console.error("Firebase Initialization Failed:", e);
+                window.FirebaseAPI.error = e.message;
+                window.FirebaseAPI.ready = false;
             }
-        } catch(e) {
-            console.error("Firebase Initialization Failed:", e);
         }
+
+        initializeFirebase();
     </script>
 
     <div id="unlock-notify">解锁新内容！</div>
@@ -548,7 +608,7 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
             <div class="text-xl tracking-[0.8em] text-cyan-300 font-bold mt-[-5px] pl-4 text-shadow-sm">星际战机</div>
         </div>
         
-        <p class="text-xs text-gray-400 mb-10 font-mono tracking-widest border-t border-b border-cyan-900/50 py-2 w-64 text-center bg-black/30">系统 V1.8.1 // 全面优化版</p>
+        <p class="text-xs text-gray-400 mb-10 font-mono tracking-widest border-t border-b border-cyan-900/50 py-2 w-64 text-center bg-black/30">系统 V1.8.4 // 终极优化版</p>
 
         <div class="flex flex-col items-center w-full max-w-sm gap-4 relative z-10">
             <button id="btn-start-mission" class="btn w-full flex justify-between items-center group" onclick="checkRunAndLaunch()" data-text="btn_launch" onmouseenter="AudioSys && AudioSys.play('ui_hover')">
@@ -634,10 +694,6 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
             <div id="countdown-text" style="font-family:'Orbitron',monospace; font-size:18px; color:rgba(255,255,255,0.7); text-align:center; margin-top:10px; letter-spacing:2px;"></div>
         </div>
         
-        <div id="game-over-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; z-index:80; pointer-events:none; background:rgba(0,0,0,0); transition:background 0.5s;">
-            <div id="game-over-text" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-family:'Orbitron',monospace; font-size:72px; font-weight:900; color:#ff0055; text-shadow:0 0 30px #ff0055, 0 0 60px #ff0055, 0 0 90px #ff0055; opacity:0; transition:opacity 0.5s; letter-spacing:8px;">GAME OVER</div>
-        </div>
-        
         <div id="game-settings-btn" onclick="pauseAndShowSettings()" onmouseenter="AudioSys && AudioSys.play('ui_hover')">⚙️</div>
 
         <div id="boss-hud">
@@ -677,6 +733,10 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
             <span class="wave-label" data-text="lbl_wave_reached">波次</span>
             <span class="wave-value"><span id="hud-wave">1</span><span class="wave-max" id="hud-max-wave">/10</span></span>
         </div>
+    </div>
+
+    <div id="game-over-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; z-index:80; pointer-events:none; background:rgba(0,0,0,0); transition:background 0.5s;">
+        <div id="game-over-text" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-family:'Orbitron',monospace; font-size:72px; font-weight:900; color:#ff0055; text-shadow:0 0 30px #ff0055, 0 0 60px #ff0055, 0 0 90px #ff0055; opacity:0; letter-spacing:8px;">GAME OVER</div>
     </div>
 
     <!-- 4. Achievements Screen -->
@@ -2473,7 +2533,7 @@ class Player {
         }
         ctx.restore();
     }
-    gainXp(amt) { this.xp += amt; this.checkLevelUp(); updateHUD(); showFloatText(this.x, this.y, "+" + amt, "#00ff00"); }
+    gainXp(amt) { this.xp += amt; this.checkLevelUp(); updateHUD(); showFloatText(this.x, this.y, "+" + Math.round(amt), "#00ff00"); }
     checkLevelUp() { if(this.xp >= this.nextLvl) { this.level++; this.xp -= this.nextLvl; this.nextLvl = Math.floor(this.nextLvl * 1.2); triggerLevelUp(); return true; } return false; }
 }
 
@@ -3331,11 +3391,27 @@ async function showLeaderboard() {
     const list = document.getElementById('lb-list');
     list.innerHTML = '<div class="text-center text-gray-500 text-sm mt-10 animate-pulse">连接星际网络...</div>';
 
-    if (window.FirebaseAPI && window.FirebaseAPI.ready) {
+    if (window.FirebaseAPI) {
+        if (!window.FirebaseAPI.ready && window.FirebaseAPI.error) {
+            list.innerHTML = `<div class="text-center text-red-500 text-sm mt-10 font-bold">
+                ⚠️ 网络连接失败<br>
+                <span class="text-gray-400 text-xs">${window.FirebaseAPI.error}</span><br>
+                <button class="btn mt-4 text-xs" onclick="retryFirebase()">重新连接</button>
+            </div>`;
+            return;
+        }
+        
         const data = await window.FirebaseAPI.getLeaderboard();
         list.innerHTML = '';
         if (data.length === 0) {
-            list.innerHTML = '<div class="text-center text-gray-500 text-sm mt-10">暂无记录，去创造历史吧！</div>';
+            if (window.FirebaseAPI.ready) {
+                list.innerHTML = '<div class="text-center text-gray-500 text-sm mt-10">暂无记录，去创造历史吧！</div>';
+            } else {
+                list.innerHTML = `<div class="text-center text-red-500 text-sm mt-10 font-bold">
+                    ⚠️ 无法连接到排行榜服务器<br>
+                    <span class="text-gray-400 text-xs">请检查网络连接</span>
+                </div>`;
+            }
         } else {
             data.forEach((entry, idx) => {
                 let rankColor = 'text-gray-400';
@@ -3354,7 +3430,24 @@ async function showLeaderboard() {
             });
         }
     } else {
-        list.innerHTML = '<div class="text-center text-red-500 text-sm mt-10 font-bold">无法连接到星际排行榜服务器<br>请检查网络连接</div>';
+        list.innerHTML = '<div class="text-center text-red-500 text-sm mt-10 font-bold">⚠️ 排行榜服务不可用<br><span class="text-gray-400 text-xs">请刷新页面重试</span></div>';
+    }
+}
+
+async function retryFirebase() {
+    const list = document.getElementById('lb-list');
+    list.innerHTML = '<div class="text-center text-gray-500 text-sm mt-10 animate-pulse">正在重新连接...</div>';
+    
+    if (window.FirebaseAPI && window.FirebaseAPI.retry) {
+        const canRetry = await window.FirebaseAPI.retry();
+        if (canRetry) {
+            setTimeout(() => showLeaderboard(), 1000);
+        } else {
+            list.innerHTML = `<div class="text-center text-red-500 text-sm mt-10 font-bold">
+                ⚠️ 连接失败次数过多<br>
+                <span class="text-gray-400 text-xs">请检查网络后刷新页面</span>
+            </div>`;
+        }
     }
 }
 
@@ -3369,16 +3462,20 @@ async function submitScore() {
     saveGame();
     
     showLbStatus('正在上传数据...', 'cyan');
-    if (window.FirebaseAPI && window.FirebaseAPI.ready) {
-        let success = await window.FirebaseAPI.uploadScore(nick, bestWave);
-        if(success) {
+    if (window.FirebaseAPI) {
+        if (!window.FirebaseAPI.ready) {
+            showLbStatus('网络未就绪: ' + (window.FirebaseAPI.error || '未知错误'), 'red');
+            return;
+        }
+        let result = await window.FirebaseAPI.uploadScore(nick, bestWave);
+        if(result.success) {
             showLbStatus('记录已同步至云端！', 'green');
-            setTimeout(() => { showLeaderboard(); }, 1000); // 刷新列表
+            setTimeout(() => { showLeaderboard(); }, 1000);
         } else {
-            showLbStatus('数据传输异常，请重试', 'red');
+            showLbStatus('上传失败: ' + (result.error || '未知错误'), 'red');
         }
     } else {
-        showLbStatus('网络未就绪', 'red');
+        showLbStatus('排行榜服务不可用', 'red');
     }
 }
 
@@ -4107,7 +4204,7 @@ function gameLoop() {
         }
         if(distSq < 400) { // 20*20
             if (p.type === 'xp') { player.gainXp(p.value || 10); AudioSys.play('ui_click'); } 
-            else if (p.type === 'gold') { player.gold += p.value; runStats.goldEarned += p.value; showFloatText(player.x, player.y, `+${p.value} 金币`, "#ffea00"); AudioSys.play('ui_click'); } 
+            else if (p.type === 'gold') { player.gold += p.value; runStats.goldEarned += p.value; showFloatText(player.x, player.y, `+${Math.round(p.value)} 金币`, "#ffea00"); AudioSys.play('ui_click'); } 
             else if (p.type === 'heal') { const healAmount = player.maxHp * 0.1 + 10; const prevHp = player.hp; player.hp = Math.min(player.maxHp, player.hp + healAmount); showFloatText(player.x, player.y, `+${Math.ceil(player.hp - prevHp)} HP`, "#00ffaa"); AudioSys.play('level_up'); } 
             else if (p.type === 'magnet') { pickups.forEach(o => o.magnetized = true); showFloatText(player.x, player.y, "MAGNET", "#fff"); AudioSys.play('level_up'); } 
             else if (p.type === 'freeze') { freezeTimer = 180; showFloatText(player.x, player.y, "FREEZE!", "#00e5ff"); createExplosion(canvas.width/2, canvas.height/2, '#00e5ff', 20); AudioSys.play('shield_break'); }
@@ -4140,7 +4237,7 @@ function gameLoop() {
                         player.nextLvl = Math.floor(player.nextLvl * 1.15);
                     }
                 }
-                showFloatText(player.x, player.y, `LEVEL UP! +${p.value || 1}`, "#ffea00");
+                showFloatText(player.x, player.y, `LEVEL UP! +${Math.round(p.value || 1)}`, "#ffea00");
                 createExplosion(player.x, player.y, '#ffea00', 20);
                 AudioSys.play('level_up');
                 updateHUD();
@@ -4840,8 +4937,20 @@ function gameLoop() {
 }
 
 function showFloatText(x, y, text, color) { 
-    const textStr = String(text);
-    const isDamageNum = /^\d+$/.test(textStr);
+    let displayText = text;
+    if (typeof text === 'number') {
+        displayText = Math.round(text);
+    } else if (typeof text === 'string') {
+        const numMatch = text.match(/^([+-]?)(\d+\.?\d*)$/);
+        if (numMatch) {
+            const sign = numMatch[1];
+            const num = Math.round(parseFloat(numMatch[2]));
+            displayText = sign + num;
+        }
+    }
+    
+    const textStr = String(displayText);
+    const isDamageNum = /^-?\d+$/.test(textStr) || /^\+?\d+$/.test(textStr);
     if (isDamageNum && settings.showDamageFloat === false) return;
     if (settings.graphics === 2 && isDamageNum) {
         if (perfLoadLevel >= 2) return;
@@ -5096,26 +5205,35 @@ function drawDeathDebris(ctx) {
 
 function showGameOverAnimation(callback) {
     gameOverAnimationActive = true;
+    const hudLayer = document.getElementById('hud-layer');
+    if (hudLayer) hudLayer.style.display = 'none';
     const overlay = document.getElementById('game-over-overlay');
     const text = document.getElementById('game-over-text');
+    
     overlay.style.display = 'block';
     overlay.style.background = 'rgba(0,0,0,0)';
+    
+    text.style.top = '100%';
+    text.style.transform = 'translate(-50%, 0)';
     text.style.opacity = '0';
+    text.style.transition = 'top 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94), opacity 0.6s ease-out, transform 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
     
     setTimeout(() => {
         overlay.style.background = 'rgba(0,0,0,0.7)';
-        text.style.opacity = '1';
     }, 50);
     
     setTimeout(() => {
-        text.style.opacity = '0';
-    }, 2000);
+        text.style.opacity = '1';
+        text.style.top = '50%';
+        text.style.transform = 'translate(-50%, -50%)';
+    }, 100);
     
     setTimeout(() => {
         overlay.style.background = 'rgba(0,0,0,0)';
+        text.style.opacity = '0';
         gameOverAnimationActive = false;
         if (callback) callback();
-    }, 2500);
+    }, 3000);
 }
 function updateUI() { 
     document.getElementById('menu-gold').innerText=saveData.gold; document.getElementById('shop-gold').innerText=saveData.gold;
@@ -5309,6 +5427,8 @@ function endGame(win) {
     activeBoss = null;
     const bossHudEl = document.getElementById('boss-hud');
     if (bossHudEl) bossHudEl.style.display = 'none';
+    const hudLayer = document.getElementById('hud-layer');
+    if (hudLayer) hudLayer.style.display = 'none';
     AudioSys.playMusic('menu'); 
     document.getElementById('result-screen').classList.add('active'); 
     saveData.currentRun = null; 
