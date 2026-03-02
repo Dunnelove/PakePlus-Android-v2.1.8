@@ -2,8 +2,8 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>星际浪人 v1.8.1 - 全面优化版</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>星际浪人 v2.0.0 - 全面改装</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700;900&family=Noto+Sans+SC:wght@400;700;900&display=swap');
@@ -22,7 +22,7 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
 
         body {
             margin: 0; overflow: hidden; background-color: var(--c-bg); color: #fff;
-            font-family: 'Rajdhani', 'Noto Sans SC', sans-serif; touch-action: none; user-select: none;
+            font-family: 'Rajdhani', 'Noto Sans SC', sans-serif; touch-action: none; -webkit-user-select: none; user-select: none;
         }
 
         body::before {
@@ -64,7 +64,7 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
             position: absolute; top: 0; left: 0; width: 100%; height: 100%;
             display: none; flex-direction: column; align-items: center; justify-content: center;
             pointer-events: auto; z-index: 10;
-            background: rgba(3, 4, 8, 0.95); backdrop-filter: blur(8px);
+            background: rgba(3, 4, 8, 0.95); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px);
             transition: opacity 0.3s; overflow: hidden; 
         }
         .screen.active { display: flex; }
@@ -209,6 +209,31 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
         .card p { color: #aaa; font-size: 0.8rem; line-height: 1.4; }
         .card-icon { font-size: 2.5rem; margin-bottom: 0.625rem; filter: drop-shadow(0 0 10px currentColor); transition: transform 0.3s, filter 0.3s; }
         .card:not(.locked):hover .card-icon { transform: scale(1.1); filter: drop-shadow(0 0 15px currentColor); }
+        .ship-model-canvas {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 0.5rem;
+            transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94), filter 0.3s;
+            filter: drop-shadow(0 0 8px var(--ship-color, #00e5ff));
+        }
+        .card:not(.locked):hover .ship-model-canvas {
+            transform: scale(1.15) translateY(-3px);
+            filter: drop-shadow(0 0 15px var(--ship-color, #00e5ff));
+        }
+        .card.selected .ship-model-canvas {
+            animation: shipModelFloat 2s ease-in-out infinite;
+        }
+        @keyframes shipModelFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-5px); }
+        }
+        .card:not(.locked):hover .ship-model-canvas {
+            animation: shipModelHover 0.6s ease-in-out infinite alternate;
+        }
+        @keyframes shipModelHover {
+            0% { transform: scale(1.15) translateY(-3px) rotate(-1deg); }
+            100% { transform: scale(1.15) translateY(-5px) rotate(1deg); }
+        }
 
         @media (max-width: 640px) {
             #shop-screen, #guide-screen, #ach-screen, #ship-select, #leaderboard-screen { justify-content: flex-start; padding-top: 2.5rem; padding-bottom: 0.625rem; }
@@ -626,7 +651,7 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
             <div class="text-xl tracking-[0.8em] text-cyan-300 font-bold mt-[-5px] pl-4 text-shadow-sm">星际战机</div>
         </div>
         
-        <p class="text-xs text-gray-400 mb-10 font-mono tracking-widest border-t border-b border-cyan-900/50 py-2 w-64 text-center bg-black/30">星际战机 V1.9.1 机甲改装</p>
+        <p class="text-xs text-gray-400 mb-10 font-mono tracking-widest border-t border-b border-cyan-900/50 py-2 w-64 text-center bg-black/30">星际战机 v2.0.0 全面改装</p>
 
         <div class="flex flex-col items-center w-full max-w-sm gap-4 relative z-10">
             <button id="btn-start-mission" class="btn w-full flex justify-between items-center group" onclick="checkRunAndLaunch()" data-text="btn_launch" onmouseenter="AudioSys && AudioSys.play('ui_hover')">
@@ -753,8 +778,8 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
         </div>
     </div>
 
-    <div id="game-over-overlay" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; z-index:80; pointer-events:none; background:rgba(0,0,0,0); transition:background 0.5s;">
-        <div id="game-over-text" style="position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); font-family:'Orbitron',monospace; font-size:72px; font-weight:900; color:#ff0055; text-shadow:0 0 30px #ff0055, 0 0 60px #ff0055, 0 0 90px #ff0055; opacity:0; letter-spacing:8px;">GAME OVER</div>
+    <div id="game-over-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:80; pointer-events:none; background:rgba(0,0,0,0); transition:background 0.5s;">
+        <div id="game-over-text" style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); font-family:'Orbitron',monospace; font-size:72px; font-weight:900; color:#ff0055; text-shadow:0 0 30px #ff0055, 0 0 60px #ff0055, 0 0 90px #ff0055; opacity:0; letter-spacing:8px;">GAME OVER</div>
     </div>
 
     <!-- 4. Achievements Screen -->
@@ -833,6 +858,7 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
                 <div id="mod-detail-icon" class="text-3xl sm:text-4xl mb-2"></div>
                 <div id="mod-detail-name" class="text-base sm:text-lg font-bold text-cyan-300 mb-1"></div>
                 <div id="mod-detail-desc" class="text-xs text-gray-400 mb-2 sm:mb-3"></div>
+                <div id="mod-detail-stats" class="text-left mb-2 sm:mb-3"></div>
                 <div id="mod-detail-cost" class="text-yellow-400 font-bold text-sm sm:text-base mb-2 sm:mb-3"></div>
                 <div id="mod-detail-btns" class="flex gap-2 justify-center flex-wrap"></div>
             </div>
@@ -867,7 +893,7 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
                 <div id="ult-detail-icon" class="text-4xl sm:text-5xl mb-2"></div>
                 <div id="ult-detail-name" class="text-lg sm:text-xl font-bold text-cyan-300 mb-1 sm:mb-2"></div>
                 <div id="ult-detail-desc" class="text-xs sm:text-sm text-gray-400 mb-2 sm:mb-4 px-2"></div>
-                <div id="ult-detail-stats" class="text-xs text-gray-500 mb-2 sm:mb-3"></div>
+                <div id="ult-detail-stats" class="text-left mb-2 sm:mb-3 px-2"></div>
                 <div id="ult-detail-cost" class="text-yellow-400 font-bold text-base sm:text-lg mb-3 sm:mb-4"></div>
                 <div id="ult-detail-btns" class="flex gap-2 justify-center flex-wrap"></div>
             </div>
@@ -883,6 +909,7 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
             <button class="tab-btn" onclick="switchTab('passives')" onmouseenter="AudioSys && AudioSys.play('ui_hover')">芯片</button>
             <button class="tab-btn" onclick="switchTab('evolution')" onmouseenter="AudioSys && AudioSys.play('ui_hover')">突破</button>
             <button class="tab-btn" onclick="switchTab('enemies')" onmouseenter="AudioSys && AudioSys.play('ui_hover')">敌军</button>
+            <button class="tab-btn" onclick="switchTab('pickups')" onmouseenter="AudioSys && AudioSys.play('ui_hover')">掉落</button>
         </div>
         <div id="guide-content" class="w-full max-w-lg overflow-y-auto px-4 h-96 bg-black/60 border border-cyan-900/30 p-4 shadow-[inset_0_0_20px_rgba(0,0,0,0.8)]"></div>
         <button class="btn mt-6" onclick="showSettings()" onmouseenter="AudioSys && AudioSys.play('ui_hover')">返回终端</button>
@@ -1114,21 +1141,23 @@ const TEXTS = {
     mod_slow: "迟缓改装", desc_mod_slow: "命中敌人后降低其移动速度和攻击速度",
     mod_attack: "攻击改装", desc_mod_attack: "直接提升武器基础攻击力",
     mod_weak: "虚弱改装", desc_mod_weak: "命中敌人后降低其攻击力",
-    mod_expand: "膨胀改装", desc_mod_expand: "增大弹幕覆盖面积和子弹体积",
     mod_boss: "破局改装", desc_mod_boss: "对BOSS单位造成额外伤害",
     mod_clear: "清场改装", desc_mod_clear: "对普通单位造成额外伤害",
     shop_weapon_mod: "武器改装", title_weapon_mod: "改装工坊",
     
     ult_katyusha: "喀秋莎火箭炮", desc_ult_katyusha: "从屏幕底部发射密集火箭炮弹幕，持续6秒",
-    ult_blackhole: "黑洞发生器", desc_ult_blackhole: "发射黑洞弹，3秒后生成引力场，持续3秒",
+    ult_blackhole: "黑洞发生器", desc_ult_blackhole: "发射黑洞弹，1秒后生成引力场，持续3秒",
     ult_thunder: "雷暴风暴", desc_ult_thunder: "召唤全屏雷暴，持续6秒，每秒打击随机敌人",
-    ult_berserk: "狂暴模式", desc_ult_berserk: "6秒内大幅提升攻击力和攻速，弹幕变为红色",
+    ult_berserk: "狂暴模式", desc_ult_berserk: "9秒内大幅提升攻击力和攻速，弹幕变为红色",
     ult_invincible: "绝对无敌", desc_ult_invincible: "激活后进入无敌状态，持续4秒",
     shop_ult_mod: "大招改装", title_ult_mod: "大招改装工坊",
-    ult_default: "默认大招", desc_ult_default: "全屏爆炸，清除所有敌人和敌方弹幕"
+    ult_default: "默认大招", desc_ult_default: "全屏爆炸，清除所有敌人和敌方弹幕",
+    mod_level: "等级", mod_max_level: "已满级", mod_upgrade: "升级",
+    mod_upgrade_cost: "升级费用", mod_effect_bonus: "效果提升",
+    mod_not_enough_gold: "金币不足"
 };
 
-const ICONS = { laser: '🔴', lightning: '⚡', boomerang: '🪃', wingman: '🛩️', timebomb: '🚀', rapid: '🔋', magnet: '🧲', speed: '💨', shield: '🛡️', multishot: '🔱', dmg: '💪', spectral: '🌈', thunder: '🌩️', spiral: '🌀', fleet: '🛸', doom: '☢️', lb_dmg: '⚔️', lb_heal: '🩹', lb_gold: '💰', mod_burning: '🔥', mod_slow: '❄️', mod_attack: '⚔️', mod_weak: '💔', mod_expand: '💫', mod_boss: '👑', mod_clear: '💥', ult_katyusha: '🚀', ult_blackhole: '🕳️', ult_thunder: '⛈️', ult_berserk: '💢', ult_invincible: '⭐', ult_default: '💥', bombcharge: '⚡' };
+const ICONS = { laser: '🔴', lightning: '⚡', boomerang: '🪃', wingman: '🛩️', timebomb: '🚀', rapid: '🔋', magnet: '🧲', speed: '💨', shield: '🛡️', multishot: '🔱', dmg: '💪', spectral: '🌈', thunder: '🌩️', spiral: '🌀', fleet: '🛸', doom: '☢️', lb_dmg: '⚔️', lb_heal: '🩹', lb_gold: '💰', mod_burning: '🔥', mod_slow: '❄️', mod_attack: '⚔️', mod_weak: '💔', mod_boss: '👑', mod_clear: '💥', ult_katyusha: '🚀', ult_blackhole: '🕳️', ult_thunder: '⛈️', ult_berserk: '💢', ult_invincible: '⭐', ult_default: '💥', bombcharge: '⚡' };
 
 const PICKUP_INFO = {
     xp: { name: '经验值', icon: '🟢', type: '消耗品', desc: '绿色的能量球，蕴含着战斗经验。', usage: '靠近自动吸收，积累经验值提升等级，解锁武器升级和被动技能。', highlight: '角色成长的核心资源，提升等级可获得强力升级！' },
@@ -1221,11 +1250,6 @@ const WEAPON_MODS = {
         icon: 'mod_weak', cost: 14000, color: '#9370db',
         effect: { type: 'weaken', atkReducePercent: 0.2, duration: 180 }
     },
-    expand: { 
-        id: 'expand', nameKey: 'mod_expand', descKey: 'desc_mod_expand', 
-        icon: 'mod_expand', cost: 10000, color: '#ffd700',
-        effect: { type: 'expand', sizeMult: 1.4 }
-    },
     boss: { 
         id: 'boss', nameKey: 'mod_boss', descKey: 'desc_mod_boss', 
         icon: 'mod_boss', cost: 24000, color: '#ff00ff',
@@ -1252,7 +1276,7 @@ const ULT_MODS = {
     blackhole: {
         id: 'blackhole', nameKey: 'ult_blackhole', descKey: 'desc_ult_blackhole',
         icon: 'ult_blackhole', cost: 35000, color: '#8b00ff',
-        effect: { type: 'blackhole', delay: 180, duration: 180, radius: 120, dmg: 30 }
+        effect: { type: 'blackhole', delay: 60, duration: 180, radius: 150, dmg: 30 }
     },
     thunder: {
         id: 'thunder', nameKey: 'ult_thunder', descKey: 'desc_ult_thunder',
@@ -1262,7 +1286,7 @@ const ULT_MODS = {
     berserk: {
         id: 'berserk', nameKey: 'ult_berserk', descKey: 'desc_ult_berserk',
         icon: 'ult_berserk', cost: 25000, color: '#ff0000',
-        effect: { type: 'berserk', duration: 360, atkMult: 2.0, spdMult: 1.5 }
+        effect: { type: 'berserk', duration: 540, atkMult: 2.0, spdMult: 2.5 }
     },
     invincible: {
         id: 'invincible', nameKey: 'ult_invincible', descKey: 'desc_ult_invincible',
@@ -1270,6 +1294,266 @@ const ULT_MODS = {
         effect: { type: 'invincible', duration: 240 }
     }
 };
+
+const MOD_UPGRADE_CONFIG = {
+    maxLevel: 3,
+    levelBonus: {
+        1: 1.0,
+        2: 1.4,
+        3: 1.9
+    },
+    getUpgradeCost: function(baseCost, currentLevel) {
+        const costs = {
+            1: Math.floor(baseCost * 0.4),
+            2: Math.floor(baseCost * 0.6)
+        };
+        return costs[currentLevel] || 0;
+    }
+};
+
+function getModLevel(isWeapon, modKey) {
+    if (isWeapon) {
+        return saveData.weaponModLevels[modKey] || 1;
+    } else {
+        return saveData.ultModLevels[modKey] || 1;
+    }
+}
+
+function getModLevelMultiplier(level) {
+    return MOD_UPGRADE_CONFIG.levelBonus[level] || 1.0;
+}
+
+function getUpgradeCostForMod(isWeapon, modKey) {
+    const config = isWeapon ? WEAPON_MODS[modKey] : ULT_MODS[modKey];
+    if (!config) return 0;
+    const currentLevel = getModLevel(isWeapon, modKey);
+    if (currentLevel >= MOD_UPGRADE_CONFIG.maxLevel) return 0;
+    return MOD_UPGRADE_CONFIG.getUpgradeCost(config.cost, currentLevel);
+}
+
+function getWeaponModEffectStats(modKey, levelMult) {
+    const conf = WEAPON_MODS[modKey];
+    if (!conf || !conf.effect) return [];
+    const effect = conf.effect;
+    const stats = [];
+    
+    switch (effect.type) {
+        case 'dot':
+            stats.push({
+                name: '燃烧伤害',
+                before: `${(effect.dmgPercent * 100).toFixed(1)}%`,
+                after: `${(effect.dmgPercent * levelMult * 100).toFixed(1)}%`,
+                unit: '最大生命值/跳'
+            });
+            stats.push({
+                name: '燃烧持续时间',
+                before: `${(effect.duration / 60).toFixed(1)}秒`,
+                after: `${(effect.duration / 60).toFixed(1)}秒`,
+                unit: ''
+            });
+            break;
+        case 'slow':
+            stats.push({
+                name: '减速效果',
+                before: `${(effect.slowPercent * 100).toFixed(0)}%`,
+                after: `${Math.min(80, effect.slowPercent * levelMult * 100).toFixed(0)}%`,
+                unit: ''
+            });
+            stats.push({
+                name: '减速持续时间',
+                before: `${(effect.duration / 60).toFixed(1)}秒`,
+                after: `${(effect.duration / 60).toFixed(1)}秒`,
+                unit: ''
+            });
+            break;
+        case 'attack_boost':
+            stats.push({
+                name: '攻击力加成',
+                before: `+${(effect.dmgPercent * 100).toFixed(0)}%`,
+                after: `+${(effect.dmgPercent * levelMult * 100).toFixed(0)}%`,
+                unit: ''
+            });
+            break;
+        case 'weaken':
+            stats.push({
+                name: '攻击力削弱',
+                before: `${(effect.atkReducePercent * 100).toFixed(0)}%`,
+                after: `${Math.min(60, effect.atkReducePercent * levelMult * 100).toFixed(0)}%`,
+                unit: ''
+            });
+            stats.push({
+                name: '削弱持续时间',
+                before: `${(effect.duration / 60).toFixed(1)}秒`,
+                after: `${(effect.duration / 60).toFixed(1)}秒`,
+                unit: ''
+            });
+            break;
+        case 'boss_dmg':
+            stats.push({
+                name: 'BOSS额外伤害',
+                before: `+${(effect.dmgPercent * 100).toFixed(0)}%`,
+                after: `+${(effect.dmgPercent * levelMult * 100).toFixed(0)}%`,
+                unit: ''
+            });
+            break;
+        case 'clear_dmg':
+            stats.push({
+                name: '普通单位额外伤害',
+                before: `+${(effect.dmgPercent * 100).toFixed(0)}%`,
+                after: `+${(effect.dmgPercent * levelMult * 100).toFixed(0)}%`,
+                unit: ''
+            });
+            break;
+    }
+    return stats;
+}
+
+function getUltModEffectStats(ultKey, levelMult) {
+    const conf = ULT_MODS[ultKey];
+    if (!conf || !conf.effect) return [];
+    const effect = conf.effect;
+    const stats = [];
+    
+    switch (effect.type) {
+        case 'katyusha':
+            stats.push({
+                name: '火箭数量',
+                before: effect.rocketCount,
+                after: Math.ceil(effect.rocketCount * levelMult),
+                unit: '发/轮'
+            });
+            stats.push({
+                name: '火箭伤害',
+                before: effect.dmg,
+                after: Math.floor(effect.dmg * levelMult),
+                unit: ''
+            });
+            stats.push({
+                name: '持续时间',
+                before: `${(effect.duration / 60).toFixed(1)}秒`,
+                after: `${(effect.duration / 60).toFixed(1)}秒`,
+                unit: ''
+            });
+            break;
+        case 'blackhole':
+            stats.push({
+                name: '黑洞半径',
+                before: effect.radius,
+                after: Math.floor(effect.radius * levelMult),
+                unit: ''
+            });
+            stats.push({
+                name: '黑洞伤害',
+                before: effect.dmg,
+                after: Math.floor(effect.dmg * levelMult),
+                unit: '/帧'
+            });
+            stats.push({
+                name: '持续时间',
+                before: `${(effect.duration / 60).toFixed(1)}秒`,
+                after: `${(effect.duration / 60).toFixed(1)}秒`,
+                unit: ''
+            });
+            break;
+        case 'thunder':
+            stats.push({
+                name: '雷击频率',
+                before: effect.strikesPerSec,
+                after: Math.ceil(effect.strikesPerSec * levelMult),
+                unit: '次/秒'
+            });
+            stats.push({
+                name: '雷击伤害',
+                before: effect.dmg,
+                after: Math.floor(effect.dmg * levelMult),
+                unit: ''
+            });
+            stats.push({
+                name: '持续时间',
+                before: `${(effect.duration / 60).toFixed(1)}秒`,
+                after: `${(effect.duration / 60).toFixed(1)}秒`,
+                unit: ''
+            });
+            break;
+        case 'berserk':
+            stats.push({
+                name: '攻击力倍率',
+                before: `${effect.atkMult.toFixed(1)}x`,
+                after: `${(effect.atkMult * levelMult).toFixed(1)}x`,
+                unit: ''
+            });
+            stats.push({
+                name: '攻速倍率',
+                before: `${effect.spdMult.toFixed(1)}x`,
+                after: `${(effect.spdMult * levelMult).toFixed(1)}x`,
+                unit: ''
+            });
+            stats.push({
+                name: '持续时间',
+                before: `${(effect.duration / 60).toFixed(1)}秒`,
+                after: `${(effect.duration * levelMult / 60).toFixed(1)}秒`,
+                unit: ''
+            });
+            break;
+        case 'invincible':
+            stats.push({
+                name: '无敌时间',
+                before: `${(effect.duration / 60).toFixed(1)}秒`,
+                after: `${(effect.duration * levelMult / 60).toFixed(1)}秒`,
+                unit: ''
+            });
+            break;
+        case 'default':
+            stats.push({
+                name: '清屏伤害',
+                before: '全屏',
+                after: '全屏',
+                unit: ''
+            });
+            break;
+    }
+    return stats;
+}
+
+function formatEffectCompareHTML(stats, nextLevelStats = null) {
+    if (!stats || stats.length === 0) return '';
+    
+    let html = '<div class="text-left mt-2 space-y-1">';
+    
+    stats.forEach((stat, index) => {
+        const isChanged = nextLevelStats && nextLevelStats[index] && 
+                         (stat.before !== nextLevelStats[index].after || 
+                          stat.after !== nextLevelStats[index].after);
+        
+        html += `
+            <div class="flex items-center justify-between text-xs py-1 border-b border-gray-800">
+                <span class="text-gray-400 w-20">${stat.name}</span>
+                <div class="flex-1 flex justify-end items-center gap-1">
+        `;
+        
+        if (nextLevelStats && nextLevelStats[index]) {
+            const nextStat = nextLevelStats[index];
+            const hasChange = stat.after !== nextStat.after;
+            
+            html += `
+                <span class="text-gray-500">当前:</span>
+                <span class="${hasChange ? 'text-gray-300' : 'text-cyan-400'}">${stat.after}${stat.unit ? ' ' + stat.unit : ''}</span>
+                <span class="text-gray-600 mx-1">→</span>
+                <span class="text-green-400 font-bold">${nextStat.after}${nextStat.unit ? ' ' + nextStat.unit : ''}</span>
+            `;
+        } else {
+            html += `<span class="text-cyan-400">${stat.after}${stat.unit ? ' ' + stat.unit : ''}</span>`;
+        }
+        
+        html += `
+                </div>
+            </div>
+        `;
+    });
+    
+    html += '</div>';
+    return html;
+}
 
 const SafeStorage = { data: {}, getItem(key) { return this.data[key] || null; }, setItem(key, value) { this.data[key] = value; }, removeItem(key) { delete this.data[key]; } };
 let storage = SafeStorage; try { if (typeof localStorage !== 'undefined') { localStorage.setItem('__test', '1'); localStorage.removeItem('__test'); storage = localStorage; } } catch(e) {}
@@ -1309,6 +1593,19 @@ if (!saveData.weaponMods) saveData.weaponMods = {};
 if (!saveData.weaponModEquips) saveData.weaponModEquips = {};
 if (!saveData.ultMods) saveData.ultMods = {};
 if (!saveData.currentUltMod) saveData.currentUltMod = 'default';
+if (!saveData.weaponModLevels) saveData.weaponModLevels = {};
+if (!saveData.ultModLevels) saveData.ultModLevels = {};
+
+Object.keys(saveData.weaponMods).forEach(key => {
+    if (saveData.weaponMods[key] === true && !saveData.weaponModLevels[key]) {
+        saveData.weaponModLevels[key] = 1;
+    }
+});
+Object.keys(saveData.ultMods).forEach(key => {
+    if (saveData.ultMods[key] === true && !saveData.ultModLevels[key]) {
+        saveData.ultModLevels[key] = 1;
+    }
+});
 
 if (saveData.upgrades) {
     for (let key in SHOP_CONFIG) {
@@ -3115,18 +3412,35 @@ class Enemy {
             const pulsarCyclePassed = Math.floor((this.tick - spd) / 150) !== Math.floor(this.tick / 150);
             if (this.combatActive && canMove && pulsarCyclePassed) {
                 AudioSys.play('alarm');
+                createExplosion(this.x, this.y, '#00ffaa', 25);
+                createExplosion(this.x, this.y, '#ffffff', 15);
+                for (let i = 0; i < 12; i++) {
+                    particles.push({
+                        x: this.x + (Math.random() - 0.5) * 30,
+                        y: this.y + (Math.random() - 0.5) * 30,
+                        vx: (Math.random() - 0.5) * 8,
+                        vy: (Math.random() - 0.5) * 8,
+                        color: i % 2 === 0 ? '#00ffaa' : '#ffffff',
+                        life: 0.6,
+                        maxLife: 0.6,
+                        size: 4 + Math.random() * 4,
+                        shape: 0
+                    });
+                }
                 activeProjectiles.push({
-                    type: 'enemy_laser',
+                    type: 'enemy_accel_bullet',
                     team: 'enemy',
                     x: this.x,
                     y: this.y,
-                    angle: angleToPlayer,
-                    w: 14,
-                    dmg: 16 * dmgScale,
-                    warnTime: 60,
-                    activeTime: 20,
+                    vx: 0,
+                    vy: 0,
+                    dmg: 25 * dmgScale,
                     color: '#00ffaa',
-                    tracking: false
+                    life: 480,
+                    phase: 'tracking',
+                    trackingDuration: 120,
+                    lockedTargetX: 0,
+                    lockedTargetY: 0
                 });
             }
             if (this.y > canvas.height + 50) this.marked = true;
@@ -3301,7 +3615,7 @@ class Enemy {
         }
     }
     
-    applyModEffect(modKey, weaponKey) {
+    applyModEffect(modKey, weaponKey, levelMult = 1.0) {
         const modConf = WEAPON_MODS[modKey];
         if (!modConf) return;
         
@@ -3312,19 +3626,19 @@ class Enemy {
             case 'dot':
                 this.modEffects.burning.active = true;
                 this.modEffects.burning.timer = effect.duration;
-                this.modEffects.burning.dmgPercent = effect.dmgPercent;
+                this.modEffects.burning.dmgPercent = effect.dmgPercent * levelMult;
                 this.modEffects.burning.interval = effect.interval;
                 this.modEffects.burning.lastTick = 0;
                 break;
             case 'slow':
                 this.modEffects.slow.active = true;
                 this.modEffects.slow.timer = effect.duration;
-                this.modEffects.slow.slowPercent = effect.slowPercent;
+                this.modEffects.slow.slowPercent = Math.min(0.8, effect.slowPercent * levelMult);
                 break;
             case 'weaken':
                 this.modEffects.weak.active = true;
                 this.modEffects.weak.timer = effect.duration;
-                this.modEffects.weak.atkReducePercent = effect.atkReducePercent;
+                this.modEffects.weak.atkReducePercent = Math.min(0.6, effect.atkReducePercent * levelMult);
                 break;
         }
     }
@@ -3622,6 +3936,61 @@ const guidePages = [
                     <p class="text-yellow-300 font-bold">专属技能「毁灭雷暴」：电弧满级时每6秒爆发全屏雷暴！</p>
                     <p class="text-cyan-300 text-xs">拥有所有机型的觉醒特技</p>
                 </div>
+            </div>
+        `
+    },
+    {
+        title: "战场掉落道具",
+        content: `
+            <div class="space-y-2 text-xs">
+                <p class="text-cyan-300 font-bold mb-2">击败敌人可获得以下掉落物：</p>
+                <div class="grid grid-cols-2 gap-2">
+                    <div class="bg-black/50 p-2 rounded border border-green-900/50">
+                        <p class="text-green-400 font-bold">🟢 经验值</p>
+                        <p class="text-gray-400">核心资源，提升等级</p>
+                        <p class="text-yellow-300 text-xs">优先拾取！</p>
+                    </div>
+                    <div class="bg-black/50 p-2 rounded border border-yellow-900/50">
+                        <p class="text-yellow-400 font-bold">💰 金币</p>
+                        <p class="text-gray-400">货币，购买升级</p>
+                        <p class="text-gray-500 text-xs">精英掉落更多</p>
+                    </div>
+                    <div class="bg-black/50 p-2 rounded border border-red-900/50">
+                        <p class="text-red-400 font-bold">➕ 生命恢复</p>
+                        <p class="text-gray-400">恢复10%HP+10</p>
+                        <p class="text-red-300 text-xs">紧急时拾取！</p>
+                    </div>
+                    <div class="bg-black/50 p-2 rounded border border-cyan-900/50">
+                        <p class="text-cyan-400 font-bold">🧲 磁力场</p>
+                        <p class="text-gray-400">吸引所有掉落物</p>
+                        <p class="text-gray-500 text-xs">快速收集</p>
+                    </div>
+                    <div class="bg-black/50 p-2 rounded border border-blue-900/50">
+                        <p class="text-blue-400 font-bold">❄️ 时间冻结</p>
+                        <p class="text-gray-400">冻结所有敌人</p>
+                        <p class="text-gray-500 text-xs">稀有掉落</p>
+                    </div>
+                    <div class="bg-black/50 p-2 rounded border border-yellow-700/50">
+                        <p class="text-yellow-200 font-bold">⭐ 无敌星</p>
+                        <p class="text-gray-400">短暂无敌保护</p>
+                        <p class="text-gray-500 text-xs">极稀有</p>
+                    </div>
+                    <div class="bg-black/50 p-2 rounded border border-orange-900/50">
+                        <p class="text-orange-400 font-bold">⚡ 攻击强化</p>
+                        <p class="text-gray-400">攻击力+50%</p>
+                        <p class="text-gray-500 text-xs">极稀有</p>
+                    </div>
+                    <div class="bg-black/50 p-2 rounded border border-purple-900/50">
+                        <p class="text-purple-400 font-bold">🔮 能量核心</p>
+                        <p class="text-gray-400">充满大招能量</p>
+                        <p class="text-gray-500 text-xs">极稀有</p>
+                    </div>
+                </div>
+                <div class="bg-black/50 p-2 rounded border border-yellow-500/50 mt-2">
+                    <p class="text-yellow-400 font-bold text-center">⬆️ 升级模块</p>
+                    <p class="text-gray-300 text-center">直接触发升级选择！BOSS击杀必掉</p>
+                </div>
+                <p class="text-gray-500 text-xs mt-2">💡 提示：靠近掉落物自动吸收，磁力场可扩大范围</p>
             </div>
         `
     },
@@ -4086,19 +4455,21 @@ function applyWeaponModDamage(enemy, baseDmg, weaponKey) {
     
     const modConf = WEAPON_MODS[modKey];
     const effect = modConf.effect;
+    const level = getModLevel(true, modKey);
+    const levelMult = getModLevelMultiplier(level);
     let finalDmg = baseDmg;
     
     if (effect.type === 'attack_boost') {
-        finalDmg *= (1 + effect.dmgPercent);
+        finalDmg *= (1 + effect.dmgPercent * levelMult);
     }
     else if (effect.type === 'boss_dmg' && (enemy.isBoss || enemy.role === 'boss' || enemy.role === 'elite')) {
-        finalDmg *= (1 + effect.dmgPercent);
+        finalDmg *= (1 + effect.dmgPercent * levelMult);
     }
     else if (effect.type === 'clear_dmg' && enemy.role === 'minion' && !enemy.isBoss) {
-        finalDmg *= (1 + effect.dmgPercent);
+        finalDmg *= (1 + effect.dmgPercent * levelMult);
     }
     else if (effect.type === 'dot' || effect.type === 'slow' || effect.type === 'weaken') {
-        enemy.applyModEffect(modKey, weaponKey);
+        enemy.applyModEffect(modKey, weaponKey, levelMult);
     }
     
     return finalDmg;
@@ -4363,16 +4734,16 @@ function gameLoop() {
 
     if(frameCount%(Math.floor(spawnFrequency)/spd)<1) {
         let type = 'drone'; const r = Math.random();
-        if (gameWave >= 20) { if (r < 0.08) type = 'pentagram'; else if (r < 0.18) type = 'weaver'; else if (r < 0.33) type = 'pulsar'; else if (r < 0.48) type = 'wanderer'; else if (r < 0.68) type = 'tank'; else if (r < 0.88) type = 'shooter'; else if (r < 0.98) type = 'kamikaze'; } 
-        else if (gameWave >= 10) { if (r < 0.15) type = 'pulsar'; else if (r < 0.3) type = 'wanderer'; else if (r < 0.5) type = 'tank'; else if (r < 0.7) type = 'shooter'; else if (r < 0.9) type = 'kamikaze'; } 
-        else if (gameWave >= 6) { if (r < 0.15) type = 'wanderer'; else if (r < 0.3) type = 'tank'; else if (r < 0.6) type = 'shooter'; } 
+        if (gameWave >= 21) { if (r < 0.05) type = 'pentagram'; else if (r < 0.15) type = 'weaver'; else if (r < 0.30) type = 'pulsar'; else if (r < 0.45) type = 'wanderer'; else if (r < 0.65) type = 'tank'; else if (r < 0.85) type = 'shooter'; else if (r < 0.95) type = 'kamikaze'; } 
+        else if (gameWave >= 11) { if (r < 0.10) type = 'weaver'; else if (r < 0.25) type = 'pulsar'; else if (r < 0.40) type = 'wanderer'; else if (r < 0.60) type = 'tank'; else if (r < 0.80) type = 'shooter'; else if (r < 0.90) type = 'kamikaze'; } 
+        else if (gameWave >= 6) { if (r < 0.15) type = 'wanderer'; else if (r < 0.30) type = 'tank'; else if (r < 0.60) type = 'shooter'; } 
         else if (gameWave >= 2) { if (r < 0.4) type = 'shooter'; }
         enemies.push(new Enemy(type, gameWave));
     }
     if (!isWaveBossActive && waveTimer >= 45) { spawnWaveBoss(); }
 
     player.update(spd);
-    const instantCullProjectileTypes = new Set(['basic', 'wingman_bullet', 'fleet_laser', 'missile', 'doom_missile', 'giant_missile', 'rang', 'enemy_bullet', 'enemy_missile']);
+    const instantCullProjectileTypes = new Set(['basic', 'wingman_bullet', 'fleet_laser', 'missile', 'doom_missile', 'giant_missile', 'rang', 'enemy_bullet', 'enemy_missile', 'enemy_accel_bullet']);
     const isOutOfScreen = (p) => p.x < 0 || p.x > canvas.width || p.y < 0 || p.y > canvas.height;
     const shouldInstantCullProjectile = (p) => instantCullProjectileTypes.has(p.type) && isOutOfScreen(p);
     const canLockEnemyTarget = (e) => !!e && !e.marked && e.combatActive && e.x >= 0 && e.x <= canvas.width && e.y >= 0 && e.y <= canvas.height;
@@ -4810,6 +5181,70 @@ function gameLoop() {
                 let dx = player.x - p.x; let dy = player.y - p.y;
                 if(dx*dx + dy*dy < 100) { player.takeDamage(p.dmg); p.marked=true; createExplosion(p.x, p.y, '#ff0055', 5); }
             }
+            else if (p.type === 'enemy_accel_bullet') {
+                p.life -= spd; if(p.life <= 0) p.marked = true;
+                
+                if (p.phase === 'tracking') {
+                    p.trackingDuration -= spd;
+                    let angleToPlayer = Math.atan2(player.y - p.y, player.x - p.x);
+                    let trackSpeed = 1.2;
+                    p.vx = Math.cos(angleToPlayer) * trackSpeed;
+                    p.vy = Math.sin(angleToPlayer) * trackSpeed;
+                    p.x += p.vx * spd;
+                    p.y += p.vy * spd;
+                    p.lockedTargetX = player.x;
+                    p.lockedTargetY = player.y;
+                    
+                    if (p.trackingDuration <= 0) {
+                        p.phase = 'locked';
+                        let angle = Math.atan2(p.lockedTargetY - p.y, p.lockedTargetX - p.x);
+                        let dashSpeed = 12;
+                        p.vx = Math.cos(angle) * dashSpeed;
+                        p.vy = Math.sin(angle) * dashSpeed;
+                        p.lockedAngle = angle;
+                        createExplosion(p.x, p.y, '#00ffaa', 10);
+                        AudioSys.play('shoot_heavy');
+                    }
+                    
+                    if (perfLoadLevel < 2 && frameCount % 3 === 0) {
+                        particles.push({
+                            x: p.x + (Math.random() - 0.5) * 10,
+                            y: p.y + (Math.random() - 0.5) * 10,
+                            vx: (Math.random() - 0.5) * 2,
+                            vy: (Math.random() - 0.5) * 2,
+                            color: '#00ffaa',
+                            life: 0.3,
+                            maxLife: 0.3,
+                            size: 3
+                        });
+                    }
+                }
+                else if (p.phase === 'locked') {
+                    p.x += p.vx * spd;
+                    p.y += p.vy * spd;
+                    
+                    if (perfLoadLevel < 2 && frameCount % 2 === 0) {
+                        let trailAngle = p.lockedAngle + Math.PI;
+                        particles.push({
+                            x: p.x + Math.cos(trailAngle) * 10,
+                            y: p.y + Math.sin(trailAngle) * 10,
+                            vx: Math.cos(trailAngle + (Math.random() - 0.5) * 0.5) * 3,
+                            vy: Math.sin(trailAngle + (Math.random() - 0.5) * 0.5) * 3,
+                            color: '#00ffaa',
+                            life: 0.25,
+                            maxLife: 0.25,
+                            size: 4
+                        });
+                    }
+                }
+                
+                let dx = player.x - p.x; let dy = player.y - p.y;
+                if (dx * dx + dy * dy < 144) {
+                    player.takeDamage(p.dmg);
+                    p.marked = true;
+                    createExplosion(p.x, p.y, '#00ffaa', 12);
+                }
+            }
         }
         if (!p.marked && shouldInstantCullProjectile(p)) p.marked = true;
     });
@@ -5083,6 +5518,77 @@ function gameLoop() {
             ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(Math.atan2(p.vy, p.vx));
             ctx.fillStyle = p.color; ctx.beginPath(); ctx.moveTo(6, 0); ctx.lineTo(-6, -4); ctx.lineTo(-6, 4); ctx.fill();
             ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(-2, 0, 2, 0, Math.PI*2); ctx.fill();
+            ctx.restore();
+        }
+        else if (p.type === 'enemy_accel_bullet') {
+            ctx.save(); ctx.translate(p.x, p.y);
+            
+            if (p.phase === 'tracking') {
+                if (settings.graphics > 0) { ctx.shadowBlur = settings.graphics === 1 ? 12 : 20; ctx.shadowColor = '#00ffaa'; }
+                
+                ctx.globalAlpha = 0.3 + Math.sin(frameCount * 0.3) * 0.2;
+                ctx.strokeStyle = '#00ffaa';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(0, 0, 20 + Math.sin(frameCount * 0.2) * 5, 0, Math.PI * 2);
+                ctx.stroke();
+                
+                ctx.globalAlpha = 0.15;
+                ctx.fillStyle = '#00ffaa';
+                ctx.beginPath();
+                ctx.arc(0, 0, 18, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.globalAlpha = 1;
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.arc(0, 0, 8, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(0, 0, 4, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.strokeStyle = '#00ffaa';
+                ctx.lineWidth = 1;
+                ctx.globalAlpha = 0.6;
+                for (let i = 0; i < 4; i++) {
+                    let angle = (i * Math.PI / 2) + frameCount * 0.08;
+                    ctx.beginPath();
+                    ctx.moveTo(Math.cos(angle) * 10, Math.sin(angle) * 10);
+                    ctx.lineTo(Math.cos(angle) * 16, Math.sin(angle) * 16);
+                    ctx.stroke();
+                }
+            }
+            else if (p.phase === 'locked') {
+                ctx.rotate(p.lockedAngle || 0);
+                if (settings.graphics > 0) { ctx.shadowBlur = settings.graphics === 1 ? 15 : 25; ctx.shadowColor = '#00ffaa'; }
+                
+                ctx.fillStyle = p.color;
+                ctx.beginPath();
+                ctx.moveTo(14, 0);
+                ctx.lineTo(-8, -8);
+                ctx.lineTo(-4, 0);
+                ctx.lineTo(-8, 8);
+                ctx.closePath();
+                ctx.fill();
+                
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath();
+                ctx.arc(0, 0, 4, 0, Math.PI * 2);
+                ctx.fill();
+                
+                ctx.fillStyle = 'rgba(0, 255, 170, 0.6)';
+                ctx.beginPath();
+                ctx.moveTo(14, 0);
+                ctx.lineTo(-8, -8);
+                ctx.lineTo(-14, 0);
+                ctx.lineTo(-8, 8);
+                ctx.closePath();
+                ctx.fill();
+            }
+            
             ctx.restore();
         } else if (p.type === 'enemy_rocket') {
             ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(Math.atan2(p.vy, p.vx));
@@ -6251,15 +6757,218 @@ function updateShipGrid() {
         
         let d=document.createElement('div'); d.className=`card ${currentShip===k?'selected':''} ${!unlocked?'locked':''}`; 
         
-        d.innerHTML=`${!unlocked ? '<div class="absolute inset-0 flex items-center justify-center bg-black/80 z-10"><span class="text-2xl">🔒</span></div>' : ''}<div class="card-icon" style="color:${conf.color}; filter:drop-shadow(0 0 10px ${conf.color}); margin-bottom:5px;">✈</div><h3 style="margin-bottom:0; font-size:1rem;">${conf.name}</h3>`; 
+        let canvasHtml = `<canvas class="ship-model-canvas" id="ship-canvas-${k}" style="--ship-color:${conf.color};" width="160" height="160"></canvas>`;
+        d.innerHTML=`${!unlocked ? '<div class="absolute inset-0 flex items-center justify-center bg-black/80 z-10"><span class="text-2xl">🔒</span></div>' : ''}${canvasHtml}<h3 style="margin-bottom:0; font-size:1rem;">${conf.name}</h3>`; 
+        
+        c.appendChild(d); 
+        
+        let canvas = document.getElementById(`ship-canvas-${k}`);
+        if (canvas) {
+            let ctx = canvas.getContext('2d');
+            ctx.save();
+            ctx.translate(80, 75);
+            ctx.scale(1.8, 1.8);
+            drawShipModelPreview(ctx, k, conf.color);
+            ctx.restore();
+        }
         
         if (unlocked) d.onclick=()=>{ AudioSys.play('ui_click'); currentShip=k; updateShipGrid(); }; 
-        c.appendChild(d); 
         
         if (currentShip === k && infoPanel) {
             infoPanel.innerHTML = `<div class="text-lg font-bold mb-1 tracking-widest" style="color:${conf.color}; text-shadow:0 0 8px ${conf.color}">${conf.name}</div><div class="text-sm text-gray-300 leading-relaxed px-2">${t(conf.descKey)}</div>`;
         }
     } 
+}
+
+function drawShipModelPreview(ctx, type, color) {
+    ctx.save();
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.shadowBlur = 12;
+    ctx.shadowColor = color;
+    
+    ctx.fillStyle = 'rgba(0, 200, 255, 0.4)';
+    ctx.beginPath(); 
+    ctx.moveTo(-4, 8); 
+    ctx.quadraticCurveTo(0, 25, 4, 8); 
+    ctx.fill();
+    
+    ctx.fillStyle = 'rgba(100, 220, 255, 0.6)';
+    ctx.beginPath(); 
+    ctx.moveTo(-2.5, 8); 
+    ctx.quadraticCurveTo(0, 20, 2.5, 8); 
+    ctx.fill();
+    
+    ctx.fillStyle = '#fff';
+    ctx.beginPath(); 
+    ctx.moveTo(-1, 8); 
+    ctx.quadraticCurveTo(0, 14, 1, 8); 
+    ctx.fill();
+    
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = color;
+    
+    if (type === 'ranger') {
+        ctx.fillStyle = '#0a0a14';
+        ctx.beginPath();
+        ctx.moveTo(0, -22);
+        ctx.lineTo(9, 0);
+        ctx.lineTo(16, 18);
+        ctx.lineTo(0, 13);
+        ctx.lineTo(-16, 18);
+        ctx.lineTo(-9, 0);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.moveTo(0, -8);
+        ctx.lineTo(3.5, 4);
+        ctx.lineTo(0, 7);
+        ctx.lineTo(-3.5, 4);
+        ctx.fill();
+        ctx.fillStyle = color;
+        ctx.globalAlpha = 0.5;
+        ctx.beginPath();
+        ctx.moveTo(9, 4);
+        ctx.lineTo(26, 13);
+        ctx.lineTo(16, 18);
+        ctx.lineTo(-9, 4);
+        ctx.lineTo(-26, 13);
+        ctx.lineTo(-16, 18);
+        ctx.fill();
+    }
+    else if (type === 'bulwark') {
+        ctx.fillStyle = '#0a140a';
+        ctx.beginPath();
+        ctx.moveTo(-16, -18);
+        ctx.lineTo(16, -18);
+        ctx.lineTo(25, 9);
+        ctx.lineTo(11, 22);
+        ctx.lineTo(-11, 22);
+        ctx.lineTo(-25, 9);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = '#1a331a';
+        ctx.fillRect(-10, -10, 20, 20);
+        ctx.strokeRect(-10, -10, 20, 20);
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(-2.5, -22, 5, 13);
+    }
+    else if (type === 'lightning') {
+        ctx.fillStyle = '#14140a';
+        ctx.beginPath();
+        ctx.moveTo(0, -32);
+        ctx.lineTo(10, 8);
+        ctx.lineTo(0, 4);
+        ctx.lineTo(-10, 8);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(0, 0, 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255,234,0,0.5)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, -25);
+        ctx.lineTo(2.5, -17);
+        ctx.lineTo(-1.5, -12);
+        ctx.lineTo(3, -6);
+        ctx.stroke();
+    }
+    else if (type === 'shadow') {
+        ctx.fillStyle = '#050010';
+        ctx.beginPath();
+        ctx.moveTo(0, -30);
+        ctx.lineTo(10, -4);
+        ctx.lineTo(22, 13);
+        ctx.lineTo(0, 8);
+        ctx.lineTo(-22, 13);
+        ctx.lineTo(-10, -4);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+        ctx.beginPath();
+        ctx.moveTo(0, -22);
+        ctx.lineTo(0, 4);
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(213,0,249,0.25)';
+        ctx.beginPath();
+        ctx.arc(0, 0, 16, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    else if (type === 'piercer') {
+        ctx.fillStyle = '#001a1a';
+        ctx.beginPath();
+        ctx.moveTo(0, -26);
+        ctx.lineTo(7, -8);
+        ctx.lineTo(13, 9);
+        ctx.lineTo(4, 13);
+        ctx.lineTo(0, 8);
+        ctx.lineTo(-4, 13);
+        ctx.lineTo(-13, 9);
+        ctx.lineTo(-7, -8);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.moveTo(0, -17);
+        ctx.lineTo(2.5, -4);
+        ctx.lineTo(-2.5, -4);
+        ctx.fill();
+    }
+    else if (type === 'deity') {
+        ctx.fillStyle = '#111';
+        ctx.beginPath();
+        ctx.arc(0, 0, 8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        
+        for (let i = 0; i < 4; i++) {
+            ctx.save();
+            ctx.rotate(i * (Math.PI / 2));
+            ctx.beginPath();
+            ctx.moveTo(0, -12);
+            ctx.lineTo(8, -20);
+            ctx.lineTo(0, -28);
+            ctx.lineTo(-8, -20);
+            ctx.closePath();
+            ctx.fill();
+            ctx.stroke();
+            ctx.restore();
+        }
+        
+        ctx.strokeStyle = 'rgba(255,255,255,0.3)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(0, 0, 32, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(0, 0, 5, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    else {
+        ctx.fillStyle = '#0a0a14';
+        ctx.beginPath();
+        ctx.moveTo(0, -22);
+        ctx.lineTo(9, 0);
+        ctx.lineTo(16, 18);
+        ctx.lineTo(0, 13);
+        ctx.lineTo(-16, 18);
+        ctx.lineTo(-9, 0);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+    }
+    
+    ctx.restore();
 }
 function showShop() { if (saveData.currentRun) return notifyUnlock("任务进行中，无法升级机库。"); document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('shop-screen').classList.add('active'); renderShop(); }
 
@@ -6382,6 +7091,7 @@ function renderModList() {
         const conf = WEAPON_MODS[modKey];
         const isOwned = saveData.weaponMods[modKey];
         const isEquipped = selectedWeaponForMod && saveData.weaponModEquips[selectedWeaponForMod] === modKey;
+        const level = getModLevel(true, modKey);
         
         let d = document.createElement('div');
         d.className = `card p-2 cursor-pointer ${isOwned ? 'border-green-500' : ''} ${isEquipped ? 'selected' : ''}`;
@@ -6389,9 +7099,11 @@ function renderModList() {
         d.style.minHeight = '60px';
         d.style.touchAction = 'manipulation';
         
+        let levelBadge = isOwned ? `<span class="ml-1 text-yellow-400">Lv.${level}</span>` : '';
+        
         d.innerHTML = `
             <div class="text-xl sm:text-2xl mb-1">${ICONS[conf.icon] || '🔧'}</div>
-            <div class="font-bold text-xs truncate" style="color:${conf.color}">${t(conf.nameKey)}</div>
+            <div class="font-bold text-xs truncate" style="color:${conf.color}">${t(conf.nameKey)}${levelBadge}</div>
             <div class="text-xs text-gray-500">${isOwned ? '已拥有' : conf.cost + ' 金币'}</div>
         `;
         
@@ -6417,6 +7129,7 @@ function renderOwnedMods() {
         if (!conf) return;
         
         const equippedOn = Object.keys(saveData.weaponModEquips).find(wpn => saveData.weaponModEquips[wpn] === modKey);
+        const level = getModLevel(true, modKey);
         
         let d = document.createElement('div');
         d.className = 'card p-2 cursor-pointer border-green-500';
@@ -6427,7 +7140,7 @@ function renderOwnedMods() {
         
         d.innerHTML = `
             <div class="text-xl sm:text-2xl mb-1">${ICONS[conf.icon] || '🔧'}</div>
-            <div class="font-bold text-xs truncate" style="color:${conf.color}">${t(conf.nameKey)}</div>
+            <div class="font-bold text-xs truncate" style="color:${conf.color}">${t(conf.nameKey)} <span class="text-yellow-400">Lv.${level}</span></div>
             <div class="text-xs text-green-400 truncate">${equipText}</div>
         `;
         
@@ -6444,21 +7157,31 @@ function showModDetail(modKey, isOwnedView = false) {
     const isOwned = saveData.weaponMods[modKey];
     const isEquipped = selectedWeaponForMod && saveData.weaponModEquips[selectedWeaponForMod] === modKey;
     const equippedOn = Object.keys(saveData.weaponModEquips).find(wpn => saveData.weaponModEquips[wpn] === modKey);
+    const level = getModLevel(true, modKey);
+    const levelMult = getModLevelMultiplier(level);
+    const canUpgrade = isOwned && level < MOD_UPGRADE_CONFIG.maxLevel;
+    const upgradeCost = getUpgradeCostForMod(true, modKey);
     
     const panel = document.getElementById('mod-detail-panel');
     panel.classList.remove('hidden');
     panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     
     document.getElementById('mod-detail-icon').innerText = ICONS[conf.icon] || '🔧';
-    document.getElementById('mod-detail-name').innerText = t(conf.nameKey);
+    document.getElementById('mod-detail-name').innerText = t(conf.nameKey) + (isOwned ? ` Lv.${level}` : '');
     document.getElementById('mod-detail-name').style.color = conf.color;
     document.getElementById('mod-detail-desc').innerText = t(conf.descKey);
     
+    const statsEl = document.getElementById('mod-detail-stats');
     const costEl = document.getElementById('mod-detail-cost');
     const btnsEl = document.getElementById('mod-detail-btns');
     btnsEl.innerHTML = '';
     
     if (!isOwned) {
+        const baseStats = getWeaponModEffectStats(modKey, 1.0);
+        statsEl.innerHTML = `
+            <div class="text-xs text-gray-500 mb-1 font-bold">基础效果预览:</div>
+            ${formatEffectCompareHTML(baseStats)}
+        `;
         costEl.innerText = `价格: ${conf.cost} 金币`;
         costEl.classList.remove('text-red-400');
         
@@ -6475,8 +7198,45 @@ function showModDetail(modKey, isOwnedView = false) {
             costEl.classList.add('text-red-400');
         }
     } else {
-        costEl.innerText = '已拥有';
-        costEl.classList.remove('text-red-400');
+        const currentStats = getWeaponModEffectStats(modKey, levelMult);
+        
+        if (canUpgrade) {
+            const nextLevelMult = getModLevelMultiplier(level + 1);
+            const nextLevelStats = getWeaponModEffectStats(modKey, nextLevelMult);
+            const improvement = Math.round((nextLevelMult - levelMult) * 100);
+            
+            statsEl.innerHTML = `
+                <div class="text-xs text-purple-400 mb-1 font-bold flex items-center justify-between">
+                    <span>升级预览 (Lv.${level} → Lv.${level + 1})</span>
+                    <span class="text-green-400">+${improvement}%效果</span>
+                </div>
+                ${formatEffectCompareHTML(currentStats, nextLevelStats)}
+            `;
+            
+            costEl.innerText = `升级费用: ${upgradeCost} 金币`;
+            costEl.classList.remove('text-red-400');
+            
+            let upgradeBtn = document.createElement('button');
+            upgradeBtn.className = 'btn !border-purple-600 !text-purple-400 hover:!bg-purple-600 hover:!text-white text-xs sm:text-sm py-2 px-3 sm:px-4 m-0 min-w-[80px]';
+            if (saveData.gold >= upgradeCost) {
+                upgradeBtn.innerText = '升级';
+                upgradeBtn.style.touchAction = 'manipulation';
+                upgradeBtn.onclick = (e) => { e.preventDefault(); upgradeWeaponMod(modKey); };
+                upgradeBtn.ontouchend = (e) => { e.preventDefault(); upgradeWeaponMod(modKey); };
+            } else {
+                upgradeBtn.innerText = '升级(金币不足)';
+                upgradeBtn.disabled = true;
+                upgradeBtn.classList.add('opacity-50');
+            }
+            btnsEl.appendChild(upgradeBtn);
+        } else {
+            statsEl.innerHTML = `
+                <div class="text-xs text-cyan-400 mb-1 font-bold">当前效果 (已满级)</div>
+                ${formatEffectCompareHTML(currentStats)}
+            `;
+            costEl.innerText = `等级: ${level}/${MOD_UPGRADE_CONFIG.maxLevel} (已满级)`;
+            costEl.classList.remove('text-red-400');
+        }
         
         if (equippedOn) {
             let unequipBtn = document.createElement('button');
@@ -6526,10 +7286,59 @@ function buyWeaponMod(modKey) {
     
     saveData.gold -= conf.cost;
     saveData.weaponMods[modKey] = true;
+    saveData.weaponModLevels[modKey] = 1;
     saveGame();
     AudioSys.play('level_up');
     renderWeaponModShop();
     showFloatText(canvas?.width/2 || 400, canvas?.height/2 || 300, `获得改装: ${t(conf.nameKey)}`, conf.color);
+}
+
+function upgradeWeaponMod(modKey) {
+    const conf = WEAPON_MODS[modKey];
+    if (!conf || !saveData.weaponMods[modKey]) return;
+    
+    const currentLevel = getModLevel(true, modKey);
+    if (currentLevel >= MOD_UPGRADE_CONFIG.maxLevel) {
+        notifyUnlock("已达最高等级！");
+        return;
+    }
+    
+    const upgradeCost = getUpgradeCostForMod(true, modKey);
+    if (saveData.gold < upgradeCost) {
+        notifyUnlock("金币不足！");
+        return;
+    }
+    
+    saveData.gold -= upgradeCost;
+    saveData.weaponModLevels[modKey] = currentLevel + 1;
+    saveGame();
+    AudioSys.play('level_up');
+    renderWeaponModShop();
+    showFloatText(canvas?.width/2 || 400, canvas?.height/2 || 300, `${t(conf.nameKey)} 升级至 Lv.${currentLevel + 1}!`, conf.color);
+}
+
+function upgradeUltMod(ultKey) {
+    const conf = ULT_MODS[ultKey];
+    if (!conf || !saveData.ultMods[ultKey] || ultKey === 'default') return;
+    
+    const currentLevel = getModLevel(false, ultKey);
+    if (currentLevel >= MOD_UPGRADE_CONFIG.maxLevel) {
+        notifyUnlock("已达最高等级！");
+        return;
+    }
+    
+    const upgradeCost = getUpgradeCostForMod(false, ultKey);
+    if (saveData.gold < upgradeCost) {
+        notifyUnlock("金币不足！");
+        return;
+    }
+    
+    saveData.gold -= upgradeCost;
+    saveData.ultModLevels[ultKey] = currentLevel + 1;
+    saveGame();
+    AudioSys.play('level_up');
+    renderUltModShop();
+    showFloatText(canvas?.width/2 || 400, canvas?.height/2 || 300, `${t(conf.nameKey)} 升级至 Lv.${currentLevel + 1}!`, conf.color);
 }
 
 function equipWeaponMod(weaponKey, modKey) {
@@ -6592,6 +7401,7 @@ function renderUltList() {
         const conf = ULT_MODS[ultKey];
         const isOwned = saveData.ultMods[ultKey] || ultKey === 'default';
         const isEquipped = saveData.currentUltMod === ultKey;
+        const level = getModLevel(false, ultKey);
         
         let d = document.createElement('div');
         d.className = `card p-2 sm:p-3 cursor-pointer mb-2 sm:mb-3 ${isEquipped ? 'selected border-cyan-400' : ''} ${isOwned ? 'border-green-500' : ''}`;
@@ -6600,15 +7410,22 @@ function renderUltList() {
         d.style.touchAction = 'manipulation';
         
         let statusText = '';
-        if (isEquipped) statusText = '<span class="text-cyan-400 text-xs">当前装备</span>';
-        else if (isOwned) statusText = '<span class="text-green-400 text-xs">已解锁</span>';
-        else statusText = `<span class="text-yellow-400 text-xs">${conf.cost} 金币</span>`;
+        let levelBadge = '';
+        if (isEquipped) {
+            statusText = '<span class="text-cyan-400 text-xs">当前装备</span>';
+            levelBadge = ultKey !== 'default' ? `<span class="ml-1 text-yellow-400">Lv.${level}</span>` : '';
+        } else if (isOwned) {
+            statusText = '<span class="text-green-400 text-xs">已解锁</span>';
+            levelBadge = ultKey !== 'default' ? `<span class="ml-1 text-yellow-400">Lv.${level}</span>` : '';
+        } else {
+            statusText = `<span class="text-yellow-400 text-xs">${conf.cost} 金币</span>`;
+        }
         
         d.innerHTML = `
             <div class="flex items-center gap-2 sm:gap-3">
                 <div class="text-2xl sm:text-3xl flex-shrink-0">${ICONS[conf.icon] || '⭐'}</div>
                 <div class="flex-1 min-w-0">
-                    <div class="font-bold text-xs sm:text-sm truncate" style="color:${conf.color}">${t(conf.nameKey)}</div>
+                    <div class="font-bold text-xs sm:text-sm truncate" style="color:${conf.color}">${t(conf.nameKey)}${levelBadge}</div>
                     <div class="text-xs text-gray-500 mt-1 line-clamp-2">${t(conf.descKey)}</div>
                     <div class="mt-1 sm:mt-2">${statusText}</div>
                 </div>
@@ -6638,10 +7455,13 @@ function renderCurrentUlt() {
         return;
     }
     
+    const level = getModLevel(false, currentUlt);
+    const levelBadge = currentUlt !== 'default' ? ` <span class="text-yellow-400">Lv.${level}</span>` : '';
+    
     c.innerHTML = `
         <div class="text-center">
             <div class="text-3xl sm:text-5xl mb-2 sm:mb-3">${ICONS[conf.icon] || '⭐'}</div>
-            <div class="text-base sm:text-xl font-bold mb-1 sm:mb-2" style="color:${conf.color}">${t(conf.nameKey)}</div>
+            <div class="text-base sm:text-xl font-bold mb-1 sm:mb-2" style="color:${conf.color}">${t(conf.nameKey)}${levelBadge}</div>
             <div class="text-xs sm:text-sm text-gray-400 mb-2 sm:mb-4">${t(conf.descKey)}</div>
             <div class="text-xs text-cyan-400">当前装备中</div>
         </div>
@@ -6654,29 +7474,32 @@ function showUltDetail(ultKey) {
     
     const isOwned = saveData.ultMods[ultKey] || ultKey === 'default';
     const isEquipped = saveData.currentUltMod === ultKey;
+    const level = getModLevel(false, ultKey);
+    const levelMult = getModLevelMultiplier(level);
+    const canUpgrade = isOwned && ultKey !== 'default' && level < MOD_UPGRADE_CONFIG.maxLevel;
+    const upgradeCost = getUpgradeCostForMod(false, ultKey);
     
     const panel = document.getElementById('ult-detail-panel');
     panel.classList.remove('hidden');
     panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     
+    const levelBadge = ultKey !== 'default' && isOwned ? ` Lv.${level}` : '';
     document.getElementById('ult-detail-icon').innerText = ICONS[conf.icon] || '⭐';
-    document.getElementById('ult-detail-name').innerText = t(conf.nameKey);
+    document.getElementById('ult-detail-name').innerText = t(conf.nameKey) + levelBadge;
     document.getElementById('ult-detail-name').style.color = conf.color;
     document.getElementById('ult-detail-desc').innerText = t(conf.descKey);
     
     const statsEl = document.getElementById('ult-detail-stats');
-    let statsText = '';
-    if (conf.effect.duration) statsText += `持续时间: ${Math.floor(conf.effect.duration / 60)}秒 `;
-    if (conf.effect.dmg) statsText += `伤害: ${conf.effect.dmg} `;
-    if (conf.effect.atkMult) statsText += `攻击倍率: ${conf.effect.atkMult}x `;
-    if (conf.effect.spdMult) statsText += `攻速倍率: ${conf.effect.spdMult}x `;
-    statsEl.innerText = statsText;
-    
     const costEl = document.getElementById('ult-detail-cost');
     const btnsEl = document.getElementById('ult-detail-btns');
     btnsEl.innerHTML = '';
     
     if (ultKey === 'default') {
+        const defaultStats = getUltModEffectStats('default', 1.0);
+        statsEl.innerHTML = `
+            <div class="text-xs text-gray-500 mb-1 font-bold">效果说明:</div>
+            ${formatEffectCompareHTML(defaultStats)}
+        `;
         costEl.innerText = '默认大招';
         costEl.classList.remove('text-red-400');
         if (!isEquipped) {
@@ -6694,6 +7517,11 @@ function showUltDetail(ultKey) {
             btnsEl.appendChild(equippedLabel);
         }
     } else if (!isOwned) {
+        const baseStats = getUltModEffectStats(ultKey, 1.0);
+        statsEl.innerHTML = `
+            <div class="text-xs text-gray-500 mb-1 font-bold">基础效果预览 (Lv.1):</div>
+            ${formatEffectCompareHTML(baseStats)}
+        `;
         costEl.innerText = `价格: ${conf.cost} 金币`;
         costEl.classList.remove('text-red-400');
         
@@ -6710,8 +7538,45 @@ function showUltDetail(ultKey) {
             costEl.classList.add('text-red-400');
         }
     } else {
-        costEl.innerText = '已拥有';
-        costEl.classList.remove('text-red-400');
+        const currentStats = getUltModEffectStats(ultKey, levelMult);
+        
+        if (canUpgrade) {
+            const nextLevelMult = getModLevelMultiplier(level + 1);
+            const nextLevelStats = getUltModEffectStats(ultKey, nextLevelMult);
+            const improvement = Math.round((nextLevelMult - levelMult) * 100);
+            
+            statsEl.innerHTML = `
+                <div class="text-xs text-purple-400 mb-1 font-bold flex items-center justify-between">
+                    <span>升级预览 (Lv.${level} → Lv.${level + 1})</span>
+                    <span class="text-green-400">+${improvement}%效果</span>
+                </div>
+                ${formatEffectCompareHTML(currentStats, nextLevelStats)}
+            `;
+            
+            costEl.innerText = `升级费用: ${upgradeCost} 金币`;
+            costEl.classList.remove('text-red-400');
+            
+            let upgradeBtn = document.createElement('button');
+            upgradeBtn.className = 'btn !border-purple-600 !text-purple-400 hover:!bg-purple-600 hover:!text-white text-xs sm:text-sm py-2 px-3 sm:px-4 m-0 min-w-[80px] sm:min-w-[100px]';
+            if (saveData.gold >= upgradeCost) {
+                upgradeBtn.innerText = '升级';
+                upgradeBtn.style.touchAction = 'manipulation';
+                upgradeBtn.onclick = (e) => { e.preventDefault(); upgradeUltMod(ultKey); };
+                upgradeBtn.ontouchend = (e) => { e.preventDefault(); upgradeUltMod(ultKey); };
+            } else {
+                upgradeBtn.innerText = '升级(金币不足)';
+                upgradeBtn.disabled = true;
+                upgradeBtn.classList.add('opacity-50');
+            }
+            btnsEl.appendChild(upgradeBtn);
+        } else {
+            statsEl.innerHTML = `
+                <div class="text-xs text-cyan-400 mb-1 font-bold">当前效果 (已满级)</div>
+                ${formatEffectCompareHTML(currentStats)}
+            `;
+            costEl.innerText = `等级: ${level}/${MOD_UPGRADE_CONFIG.maxLevel} (已满级)`;
+            costEl.classList.remove('text-red-400');
+        }
         
         if (isEquipped) {
             let equippedLabel = document.createElement('span');
@@ -6745,6 +7610,7 @@ function buyUltMod(ultKey) {
     
     saveData.gold -= conf.cost;
     saveData.ultMods[ultKey] = true;
+    saveData.ultModLevels[ultKey] = 1;
     saveGame();
     AudioSys.play('level_up');
     renderUltModShop();
@@ -6833,7 +7699,7 @@ function setDamageFloatEnabled(enabled) {
     }
 }
 
-function switchTab(tab) { AudioSys.play('ui_click'); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); const buttons = document.getElementsByClassName('tab-btn'); for (let i = 0; i < buttons.length; i++) if (buttons[i].getAttribute('onclick') === `switchTab('${tab}')`) buttons[i].classList.add('active'); const container = document.getElementById('guide-content'); container.innerHTML = ''; let data = []; if (tab === 'ships') Object.keys(SHIPS).forEach(k => data.push({icon:'✈️', title:SHIPS[k].name, desc:t(SHIPS[k].descKey), color:SHIPS[k].color})); else if (tab === 'enemies') Object.keys(TEXTS).filter(k=>k.startsWith('enemy_')).forEach(k => data.push({icon:'👾', title:t(k).split(':')[0], desc:t(k), color:'#ff0055'})); else if (tab === 'weapons') Object.keys(WEAPONS).forEach(k => data.push({icon: ICONS[k] || '🔫', title:t(WEAPONS[k].nameKey), desc:t(WEAPONS[k].descKey), color:WEAPONS[k].color})); else if (tab === 'passives') UPGRADE_POOL.filter(i => i.type === 'passive').forEach(p => data.push({ icon: ICONS[p.id] || '🔹', title: t(p.nameKey), desc: t(p.descKey), color:'#00ffaa' })); else if (tab === 'evolution') Object.keys(WEAPONS).forEach(k => { let w = WEAPONS[k]; if (!w.passive || !w.evo) return; let p = UPGRADE_POOL.find(u => u.id === w.passive); let e = EVOLUTIONS[w.evo]; if (!p || !e) return; data.push({ icon: '🔄', title: `<span class="text-cyan-300">${t(w.nameKey)}</span> + <span class="text-yellow-300">${ICONS[p.id]} ${t(p.nameKey)}</span>`, desc: `<div class="mt-1 text-purple-400 font-bold" style="text-shadow:0 0 5px #d500f9">⬇️ 合成: ${ICONS[w.evo]} ${t(e.nameKey)}</div><div class="text-xs text-gray-400 mt-1">${t(e.descKey)}</div>`, isHtml: true, color:'#d500f9' }); }); data.forEach(item => { container.innerHTML += `<div class="guide-item" style="display:flex; gap:15px; margin-bottom:12px; padding:12px; background:rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); align-items:center; border-radius:4px;"><div class="guide-icon text-3xl" style="color:${item.color}; filter:drop-shadow(0 0 8px ${item.color})">${item.icon}</div>${item.isHtml ? `<div class="flex-1"><div class="font-bold text-white text-sm mb-1">${item.title}</div>${item.desc}</div>` : `<div class="flex-1"><div class="font-bold text-lg mb-1" style="color:${item.color}; text-shadow:0 0 5px ${item.color}">${item.title}</div><div class="text-xs text-gray-400 leading-relaxed">${item.desc}</div></div>`}</div>`; }); }
+function switchTab(tab) { AudioSys.play('ui_click'); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); const buttons = document.getElementsByClassName('tab-btn'); for (let i = 0; i < buttons.length; i++) if (buttons[i].getAttribute('onclick') === `switchTab('${tab}')`) buttons[i].classList.add('active'); const container = document.getElementById('guide-content'); container.innerHTML = ''; let data = []; if (tab === 'ships') Object.keys(SHIPS).forEach(k => data.push({icon:'✈️', title:SHIPS[k].name, desc:t(SHIPS[k].descKey), color:SHIPS[k].color})); else if (tab === 'enemies') Object.keys(TEXTS).filter(k=>k.startsWith('enemy_')).forEach(k => data.push({icon:'👾', title:t(k).split(':')[0], desc:t(k), color:'#ff0055'})); else if (tab === 'weapons') Object.keys(WEAPONS).forEach(k => data.push({icon: ICONS[k] || '🔫', title:t(WEAPONS[k].nameKey), desc:t(WEAPONS[k].descKey), color:WEAPONS[k].color})); else if (tab === 'passives') UPGRADE_POOL.filter(i => i.type === 'passive').forEach(p => data.push({ icon: ICONS[p.id] || '🔹', title: t(p.nameKey), desc: t(p.descKey), color:'#00ffaa' })); else if (tab === 'evolution') Object.keys(WEAPONS).forEach(k => { let w = WEAPONS[k]; if (!w.passive || !w.evo) return; let p = UPGRADE_POOL.find(u => u.id === w.passive); let e = EVOLUTIONS[w.evo]; if (!p || !e) return; data.push({ icon: '🔄', title: `<span class="text-cyan-300">${t(w.nameKey)}</span> + <span class="text-yellow-300">${ICONS[p.id]} ${t(p.nameKey)}</span>`, desc: `<div class="mt-1 text-purple-400 font-bold" style="text-shadow:0 0 5px #d500f9">⬇️ 合成: ${ICONS[w.evo]} ${t(e.nameKey)}</div><div class="text-xs text-gray-400 mt-1">${t(e.descKey)}</div>`, isHtml: true, color:'#d500f9' }); }); else if (tab === 'pickups') Object.keys(PICKUP_INFO).forEach(k => { let p = PICKUP_INFO[k]; data.push({ icon: p.icon, title: p.name, desc: `<div class="text-gray-300">${p.desc}</div><div class="text-cyan-400 text-xs mt-1">${p.usage}</div>${p.highlight ? `<div class="text-yellow-400 text-xs mt-1 font-bold">${p.highlight}</div>` : ''}`, isHtml: true, color: k === 'xp' ? '#00ff00' : k === 'gold' ? '#ffea00' : k === 'heal' ? '#ff4444' : k === 'level_up_item' ? '#ffea00' : '#00e5ff' }); }); data.forEach(item => { container.innerHTML += `<div class="guide-item" style="display:flex; gap:15px; margin-bottom:12px; padding:12px; background:rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); align-items:center; border-radius:4px;"><div class="guide-icon text-3xl" style="color:${item.color}; filter:drop-shadow(0 0 8px ${item.color})">${item.icon}</div>${item.isHtml ? `<div class="flex-1"><div class="font-bold text-white text-sm mb-1">${item.title}</div>${item.desc}</div>` : `<div class="flex-1"><div class="font-bold text-lg mb-1" style="color:${item.color}; text-shadow:0 0 5px ${item.color}">${item.title}</div><div class="text-xs text-gray-400 leading-relaxed">${item.desc}</div></div>`}</div>`; }); }
 
 function triggerBombUI() { 
     if(player.bombCharge >= player.bombMax){ 
@@ -6843,6 +7709,8 @@ function triggerBombUI() {
         
         const currentUlt = saveData.currentUltMod || 'default';
         const ultConf = ULT_MODS[currentUlt];
+        const ultLevel = getModLevel(false, currentUlt);
+        const levelMult = getModLevelMultiplier(ultLevel);
         
         if (!ultConf || currentUlt === 'default' || ultConf.effect.type === 'default') {
             enemies.forEach(e => { if (e.role === 'minion') e.takeDamage(99999); else e.takeDamage(800 + gameWave * 20); }); 
@@ -6856,9 +7724,9 @@ function triggerBombUI() {
             ultEffectActive = 'katyusha';
             ultEffectTimer = ultConf.effect.duration;
             ultEffectData = { 
-                rocketCount: ultConf.effect.rocketCount || 4,
+                rocketCount: Math.ceil(ultConf.effect.rocketCount * levelMult),
                 fireInterval: ultConf.effect.interval || 12,
-                dmg: ultConf.effect.dmg * (1 + player.lbDmgBonus) * getPlayerDamageBuffMult(),
+                dmg: ultConf.effect.dmg * levelMult * (1 + player.lbDmgBonus) * getPlayerDamageBuffMult(),
                 interval: 0
             };
             shakeAmount = 20;
@@ -6872,8 +7740,8 @@ function triggerBombUI() {
                 targetX: player.x,
                 targetY: Math.min(player.y - 100, canvas.height / 3),
                 duration: ultConf.effect.duration,
-                radius: ultConf.effect.radius,
-                dmg: ultConf.effect.dmg * (1 + player.lbDmgBonus) * getPlayerDamageBuffMult()
+                radius: ultConf.effect.radius * levelMult,
+                dmg: ultConf.effect.dmg * levelMult * (1 + player.lbDmgBonus) * getPlayerDamageBuffMult()
             };
             AudioSys.play('shoot_heavy');
             showFloatText(player.x, player.y, "黑洞弹发射!", '#8b00ff');
@@ -6882,8 +7750,8 @@ function triggerBombUI() {
             ultEffectActive = 'thunder';
             ultEffectTimer = ultConf.effect.duration;
             ultEffectData = {
-                strikesPerSec: ultConf.effect.strikesPerSec,
-                dmg: ultConf.effect.dmg * (1 + player.lbDmgBonus) * getPlayerDamageBuffMult(),
+                strikesPerSec: Math.ceil(ultConf.effect.strikesPerSec * levelMult),
+                dmg: ultConf.effect.dmg * levelMult * (1 + player.lbDmgBonus) * getPlayerDamageBuffMult(),
                 lastStrike: 0
             };
             shakeAmount = 15;
@@ -6892,10 +7760,10 @@ function triggerBombUI() {
         }
         else if (ultConf.effect.type === 'berserk') {
             berserkMode = true;
-            berserkTimer = ultConf.effect.duration;
+            berserkTimer = Math.floor(ultConf.effect.duration * levelMult);
             ultEffectData = {
-                atkMult: ultConf.effect.atkMult,
-                spdMult: ultConf.effect.spdMult
+                atkMult: ultConf.effect.atkMult * levelMult,
+                spdMult: ultConf.effect.spdMult * levelMult
             };
             AudioSys.play('level_up');
             showFloatText(player.x, player.y, "狂暴模式!", '#ff0000');
@@ -6903,8 +7771,8 @@ function triggerBombUI() {
         }
         else if (ultConf.effect.type === 'invincible') {
             invincibleMode = true;
-            invincibleTimer = ultConf.effect.duration;
-            player.invincible = ultConf.effect.duration;
+            invincibleTimer = Math.floor(ultConf.effect.duration * levelMult);
+            player.invincible = Math.floor(ultConf.effect.duration * levelMult);
             AudioSys.play('level_up');
             showFloatText(player.x, player.y, "绝对无敌!", '#00ffff');
             createExplosion(player.x, player.y, '#00ffff', 30);
