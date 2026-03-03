@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>星际浪人 v2.0.0 - 全面改装</title>
+    <title>星际浪人 v2.0.2 - 全面改装</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700;900&family=Noto+Sans+SC:wght@400;700;900&display=swap');
@@ -617,6 +617,42 @@
         </div>
     </div>
 
+    <!-- 机库升级引导界面 -->
+    <div id="hangar-guide" class="fixed inset-0 z-[100] flex items-center justify-center" style="display:none; background:rgba(0,0,0,0.8);">
+        <div class="guide-box relative w-[90%] max-w-lg p-6 bg-black/95 border-2 border-yellow-500 rounded-lg shadow-[0_0_40px_rgba(255,215,0,0.4),inset_0_0_20px_rgba(255,215,0,0.1)]">
+            <div class="guide-header text-center mb-4">
+                <h2 class="text-2xl font-bold text-yellow-300 orbitron" style="text-shadow:0_0_10px_#ffd700">🔧 机库改造指南</h2>
+                <p class="text-xs text-yellow-500 mt-1">提升战力的核心系统</p>
+            </div>
+            <div class="guide-content space-y-4 text-gray-300 text-sm leading-relaxed">
+                <div class="bg-cyan-950/30 p-3 rounded border border-cyan-800/50">
+                    <h3 class="text-cyan-400 font-bold mb-2 flex items-center gap-2">
+                        <span class="text-lg">⚙️</span> 基础升级
+                    </h3>
+                    <p class="text-xs text-gray-400">使用金币永久提升机体属性：<span class="text-cyan-300">攻击力、生命值、护盾、移速</span>等。升级后所有模式通用，是提升战力的基础途径。</p>
+                </div>
+                <div class="bg-orange-950/30 p-3 rounded border border-orange-800/50">
+                    <h3 class="text-orange-400 font-bold mb-2 flex items-center gap-2">
+                        <span class="text-lg">🔫</span> 武器改装
+                    </h3>
+                    <p class="text-xs text-gray-400">为武器装配特殊效果：<span class="text-orange-300">燃烧、迟缓、破甲、虚弱</span>等。解锁后可升级至Lv.3，大幅增强战斗能力。</p>
+                </div>
+                <div class="bg-purple-950/30 p-3 rounded border border-purple-800/50">
+                    <h3 class="text-purple-400 font-bold mb-2 flex items-center gap-2">
+                        <span class="text-lg">⚡</span> 大招改装
+                    </h3>
+                    <p class="text-xs text-gray-400">解锁并强化终极技能：<span class="text-purple-300">喀秋莎火箭、黑洞、雷暴、狂暴、无敌</span>。每种大招都有独特效果，升级后威力倍增！</p>
+                </div>
+                <div class="bg-yellow-950/20 p-2 rounded border border-yellow-800/30 text-center">
+                    <p class="text-xs text-yellow-400">💡 提示：优先升级攻击力和生命值，再考虑改装系统</p>
+                </div>
+            </div>
+            <div class="guide-nav flex justify-center mt-6">
+                <button id="hangar-guide-close" class="btn py-2 px-8 text-sm !border-yellow-500 !text-yellow-300 hover:!bg-yellow-500 hover:!text-black" onclick="closeHangarGuide()">开始升级</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 道具指引弹窗 -->
     <div id="pickup-guide-popup" class="fixed inset-0 z-[95] flex items-center justify-center pointer-events-none" style="display:none;">
         <div class="relative w-[90%] max-w-sm p-5 bg-black/95 border-2 border-cyan-500 rounded-lg shadow-[0_0_40px_rgba(0,229,255,0.5),inset_0_0_20px_rgba(0,229,255,0.15)] pointer-events-auto">
@@ -651,7 +687,7 @@
             <div class="text-xl tracking-[0.8em] text-cyan-300 font-bold mt-[-5px] pl-4 text-shadow-sm">星际战机</div>
         </div>
         
-        <p class="text-xs text-gray-400 mb-10 font-mono tracking-widest border-t border-b border-cyan-900/50 py-2 w-64 text-center bg-black/30">星际战机 v2.0.0 全面改装</p>
+        <p class="text-xs text-gray-400 mb-10 font-mono tracking-widest border-t border-b border-cyan-900/50 py-2 w-64 text-center bg-black/30">星际战机 v2.0.2 全面改装</p>
 
         <div class="flex flex-col items-center w-full max-w-sm gap-4 relative z-10">
             <button id="btn-start-mission" class="btn w-full flex justify-between items-center group" onclick="checkRunAndLaunch()" data-text="btn_launch" onmouseenter="AudioSys && AudioSys.play('ui_hover')">
@@ -1121,7 +1157,7 @@ const TEXTS = {
     wpn_doom: "末日风暴 (EVO)", desc_doom: "【超武】导弹数量翻倍，射速大幅提升，爆炸范围扩大。",
     pas_rapid: "极速充能", desc_rapid: "武器冷却时间减少10%。", 
     pas_magnet: "能量磁铁", desc_magnet: "拾取范围增加20%。",
-    pas_speed: "引擎过载", desc_speed: "移速+10%，全场敌人减速5%/级。",
+    pas_speed: "引擎过载", desc_speed: "移速+10%，敌人减速5%/级，敌方弹幕减速5%/级。",
     pas_shield: "偏导护盾", desc_shield: "能量护盾 (30点/级)，破碎后30秒充能 (满级缩短至20秒)。",
     wpn_multishot: "多重弹幕", desc_multishot: "主炮发射数量+1。每级增加1发子弹。",
     pas_dmg: "贫铀弹头", desc_dmg: "造成伤害增加10%。",
@@ -1567,6 +1603,7 @@ if (!saveData.settings) { saveData.settings = { volume: 0.5, speed: 1.0, graphic
 if (saveData.firstTime === undefined) { saveData.firstTime = true; }
 if (saveData.usedSuperWeaponHint === undefined) { saveData.usedSuperWeaponHint = false; }
 if (saveData.firstEndlessGuide === undefined) { saveData.firstEndlessGuide = true; }
+if (saveData.firstHangarGuide === undefined) { saveData.firstHangarGuide = true; }
 if (saveData.collectedPickupTypes === undefined) { saveData.collectedPickupTypes = {}; }
 if (saveData.settings.uiScale === undefined) { saveData.settings.uiScale = 0.85; }
 if (saveData.settings.playerBulletAlpha === undefined) { saveData.settings.playerBulletAlpha = 1.0; }
@@ -3218,7 +3255,7 @@ class Enemy {
                         this.attackAngle += 0.26;
                         for(let i=0; i<6; i++) {
                             let a = this.attackAngle + (i * Math.PI*2/6);
-                            activeProjectiles.push({type:'enemy_bullet', team:'enemy', x:this.x, y:this.y, vx:Math.cos(a)*5.44, vy:Math.sin(a)*5.44, dmg:18 * dmgScale, color:'#ff003d', life:260});
+                            activeProjectiles.push({type:'enemy_bullet', team:'enemy', x:this.x, y:this.y, vx:Math.cos(a)*4.0, vy:Math.sin(a)*4.0, dmg:18 * dmgScale, color:'#ff003d', life:260});
                         }
                     }
                     if (this.tick % 120 < 1) {
@@ -4753,6 +4790,7 @@ function gameLoop() {
     const isOutOfScreen = (p) => p.x < 0 || p.x > canvas.width || p.y < 0 || p.y > canvas.height;
     const shouldInstantCullProjectile = (p) => instantCullProjectileTypes.has(p.type) && isOutOfScreen(p);
     const canLockEnemyTarget = (e) => !!e && !e.marked && e.combatActive && e.x >= 0 && e.x <= canvas.width && e.y >= 0 && e.y <= canvas.height;
+    const enemyBulletSlowFactor = player && player.passives.speed ? Math.max(0.1, 1.0 - (player.passives.speed * 0.05)) : 1.0;
     
     activeProjectiles.forEach(p => {
         if (shouldInstantCullProjectile(p)) {
@@ -5172,7 +5210,7 @@ function gameLoop() {
                 }
             }
             else if(p.type==='enemy_bullet') { 
-                p.x+=p.vx*spd; p.y+=p.vy*spd; p.life-=spd;
+                p.x+=p.vx*spd*enemyBulletSlowFactor; p.y+=p.vy*spd*enemyBulletSlowFactor; p.life-=spd;
                 if(p.life<=0) p.marked=true;
                 let dx = player.x - p.x; let dy = player.y - p.y;
                 if(dx*dx + dy*dy < 100) { player.takeDamage(p.dmg); p.marked=true; }
@@ -5182,7 +5220,7 @@ function gameLoop() {
                 let angleToPlayer = Math.atan2(player.y - p.y, player.x - p.x); let turnSpeed = 0.03; 
                 let targetVx = Math.cos(angleToPlayer) * 5; let targetVy = Math.sin(angleToPlayer) * 5;
                 p.vx += (targetVx - p.vx) * turnSpeed * spd; p.vy += (targetVy - p.vy) * turnSpeed * spd;
-                p.x += p.vx * spd; p.y += p.vy * spd;
+                p.x += p.vx * spd * enemyBulletSlowFactor; p.y += p.vy * spd * enemyBulletSlowFactor;
                 if(perfLoadLevel < 2 && Math.random() > 0.5) particles.push({x:p.x, y:p.y, color: '#ff0055', life:0.2});
                 let dx = player.x - p.x; let dy = player.y - p.y;
                 if(dx*dx + dy*dy < 100) { player.takeDamage(p.dmg); p.marked=true; createExplosion(p.x, p.y, '#ff0055', 5); }
@@ -5196,8 +5234,8 @@ function gameLoop() {
                     let trackSpeed = 1.2;
                     p.vx = Math.cos(angleToPlayer) * trackSpeed;
                     p.vy = Math.sin(angleToPlayer) * trackSpeed;
-                    p.x += p.vx * spd;
-                    p.y += p.vy * spd;
+                    p.x += p.vx * spd * enemyBulletSlowFactor;
+                    p.y += p.vy * spd * enemyBulletSlowFactor;
                     p.lockedTargetX = player.x;
                     p.lockedTargetY = player.y;
                     
@@ -5226,8 +5264,8 @@ function gameLoop() {
                     }
                 }
                 else if (p.phase === 'locked') {
-                    p.x += p.vx * spd;
-                    p.y += p.vy * spd;
+                    p.x += p.vx * spd * enemyBulletSlowFactor;
+                    p.y += p.vy * spd * enemyBulletSlowFactor;
                     
                     if (perfLoadLevel < 2 && frameCount % 2 === 0) {
                         let trailAngle = p.lockedAngle + Math.PI;
@@ -6976,7 +7014,28 @@ function drawShipModelPreview(ctx, type, color) {
     
     ctx.restore();
 }
-function showShop() { if (saveData.currentRun) return notifyUnlock("任务进行中，无法升级机库。"); document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('shop-screen').classList.add('active'); renderShop(); }
+function showShop() { 
+    if (saveData.currentRun) return notifyUnlock("任务进行中，无法升级机库。"); 
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); 
+    document.getElementById('shop-screen').classList.add('active'); 
+    renderShop(); 
+    
+    if (saveData.firstHangarGuide) {
+        showHangarGuide();
+    }
+}
+
+function showHangarGuide() {
+    document.getElementById('hangar-guide').style.display = 'flex';
+    AudioSys.play('ui_click');
+}
+
+function closeHangarGuide() {
+    document.getElementById('hangar-guide').style.display = 'none';
+    saveData.firstHangarGuide = false;
+    saveGame();
+    AudioSys.play('ui_click');
+}
 
 function renderShop() { 
     const c = document.getElementById('shop-container'); 
