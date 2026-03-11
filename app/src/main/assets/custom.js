@@ -3,7 +3,7 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>星际浪人 v2.0.2 - 全面改装</title>
+    <title>星际浪人 v2.2.7 - 装备与变异</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@500;700;900&family=Noto+Sans+SC:wght@400;700;900&display=swap');
@@ -459,6 +459,43 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
         #game-settings-btn { position: absolute; bottom: 1.875rem; left: 1.875rem; width: 2.5rem; height: 2.5rem; background: rgba(0,0,0,0.5); border: 0.0625rem solid rgba(0,229,255,0.4); border-radius: 50%; font-size: 1.25rem; color: var(--c-primary); display: flex; align-items: center; justify-content: center; cursor: pointer; z-index: 20; pointer-events: auto; transition: all 0.2s; box-shadow: 0 0 10px rgba(0,229,255,0.2); }
         #game-settings-btn:hover { background: var(--c-primary); color: #000; box-shadow: 0 0 20px var(--c-primary); }
         .setting-row { display: flex; justify-content: space-between; width: 100%; max-width: 18.75rem; margin-bottom: 0.9375rem; color: #aaa; border-bottom: 0.0625rem solid #333; padding-bottom: 0.3125rem; font-weight: bold;}
+        
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes fadeOut { from { opacity: 1; } to { opacity: 0; } }
+        @keyframes scaleIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        .equipment-card {
+            transition: all 0.2s ease;
+        }
+        .equipment-card:hover {
+            transform: scale(1.05);
+            z-index: 10;
+        }
+        .equipment-card.rarity-0 { border-color: #666666; }
+        .equipment-card.rarity-1 { border-color: #00ff88; box-shadow: 0 0 10px rgba(0, 255, 136, 0.3); }
+        .equipment-card.rarity-2 { border-color: #ff4466; box-shadow: 0 0 15px rgba(255, 68, 102, 0.4); }
+        .equipment-card.rarity-3 { 
+            border-color: #ffd700; 
+            box-shadow: 0 0 20px rgba(255, 215, 0, 0.5);
+            animation: legendaryGlow 2s ease-in-out infinite;
+        }
+        
+        @keyframes legendaryGlow {
+            0%, 100% { box-shadow: 0 0 20px rgba(255, 215, 0, 0.5); }
+            50% { box-shadow: 0 0 35px rgba(255, 215, 0, 0.8), 0 0 50px rgba(255, 200, 0, 0.4); }
+        }
+        
+        .equipment-slot {
+            background: linear-gradient(145deg, rgba(20,20,30,0.8), rgba(10,10,15,0.9));
+            min-height: 60px;
+        }
+        .equipment-slot:hover {
+            background: linear-gradient(145deg, rgba(30,30,45,0.8), rgba(20,20,30,0.9));
+        }
+        .equipment-slot.selected {
+            border-color: #00e5ff !important;
+            box-shadow: 0 0 20px rgba(0, 229, 255, 0.5);
+        }
     </style>
 </head>
 <body>
@@ -617,6 +654,51 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
         </div>
     </div>
 
+    <!-- 装备系统引导界面 -->
+    <div id="equipment-guide" class="fixed inset-0 z-[100] flex items-center justify-center" style="display:none; background:rgba(0,0,0,0.7);">
+        <div class="guide-box relative w-[90%] max-w-md p-6 bg-black/90 border-2 border-purple-500 rounded-lg shadow-[0_0_40px_rgba(147,51,234,0.4),inset_0_0_20px_rgba(147,51,234,0.1)]">
+            <div class="guide-header text-center mb-4">
+                <h2 class="text-2xl font-bold text-purple-300 orbitron" style="text-shadow:0_0_10px_#9333ea">装备系统指南</h2>
+            </div>
+            <div id="equipment-guide-content" class="guide-content min-h-[200px] text-gray-300 text-sm leading-relaxed max-h-[60vh] overflow-y-auto">
+                <div class="space-y-3">
+                    <p class="text-purple-300 font-bold mb-2">⚙️ 装备系统是提升战力的核心途径！</p>
+                    <div class="bg-black/50 p-3 rounded border border-purple-900/50">
+                        <h3 class="text-purple-400 font-bold mb-2">📦 装备获取</h3>
+                        <p class="text-gray-300">击败BOSS后必定掉落一件装备！</p>
+                        <p class="text-gray-400 text-xs mt-1">掉落品质：白色 → 绿色 → 红色</p>
+                        <p class="text-yellow-400 text-xs">💡 波次越高，高品质装备概率越大</p>
+                    </div>
+                    <div class="bg-black/50 p-3 rounded border border-cyan-900/50">
+                        <h3 class="text-cyan-400 font-bold mb-2">🔧 装备部位</h3>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <p class="text-gray-300">⚙️ 核心引擎 - 攻击力</p>
+                            <p class="text-gray-300">🛡️ 装甲板 - 生命值</p>
+                            <p class="text-gray-300">🔫 武器挂载 - 暴击</p>
+                            <p class="text-gray-300">🚀 推进器 - 速度</p>
+                            <p class="text-gray-300">📡 传感器 - 拾取</p>
+                            <p class="text-gray-300">📦 扩展模块 - 综合</p>
+                        </div>
+                    </div>
+                    <div class="bg-black/50 p-3 rounded border border-yellow-900/50">
+                        <h3 class="text-yellow-400 font-bold mb-2">🟡 品质进阶</h3>
+                        <p class="text-gray-300 text-xs">装备品质可以通过强化进阶！</p>
+                        <p class="text-yellow-400 text-xs mt-1">白色 → 绿色 → 红色 → 金色</p>
+                    </div>
+                    <div class="bg-black/50 p-3 rounded border border-green-900/50">
+                        <h3 class="text-green-400 font-bold mb-2">⬆️ 装备强化</h3>
+                        <p class="text-gray-300 text-xs">消耗金币可强化装备，提升属性</p>
+                        <p class="text-gray-400 text-xs mt-1">最高+10，成功率随等级降低</p>
+                        <p class="text-cyan-400 text-xs mt-1">💡 任何品质装备强化至+10后均可升阶！</p>
+                    </div>
+                </div>
+            </div>
+            <div class="guide-nav flex justify-center mt-6">
+                <button id="equipment-guide-close" class="btn py-2 px-6 text-sm !border-purple-500 !text-purple-300 hover:!bg-purple-500 hover:!text-white" onclick="closeEquipmentGuide()">开始管理装备</button>
+            </div>
+        </div>
+    </div>
+
     <!-- 机库升级引导界面 -->
     <div id="hangar-guide" class="fixed inset-0 z-[100] flex items-center justify-center" style="display:none; background:rgba(0,0,0,0.8);">
         <div class="guide-box relative w-[90%] max-w-lg p-6 bg-black/95 border-2 border-yellow-500 rounded-lg shadow-[0_0_40px_rgba(255,215,0,0.4),inset_0_0_20px_rgba(255,215,0,0.1)]">
@@ -687,7 +769,7 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
             <div class="text-xl tracking-[0.8em] text-cyan-300 font-bold mt-[-5px] pl-4 text-shadow-sm">星际战机</div>
         </div>
         
-        <p class="text-xs text-gray-400 mb-10 font-mono tracking-widest border-t border-b border-cyan-900/50 py-2 w-64 text-center bg-black/30">星际战机 v2.0.2 全面改装</p>
+        <p class="text-xs text-gray-400 mb-10 font-mono tracking-widest border-t border-b border-cyan-900/50 py-2 w-64 text-center bg-black/30">星际战机 v2.2.7 装备与变异</p>
 
         <div class="flex flex-col items-center w-full max-w-sm gap-4 relative z-10">
             <button id="btn-start-mission" class="btn w-full flex justify-between items-center group" onclick="checkRunAndLaunch()" data-text="btn_launch" onmouseenter="AudioSys && AudioSys.play('ui_hover')">
@@ -697,11 +779,14 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
                 <span class="text-sm">放弃并开始新任务</span> <span class="text-xs opacity-50">X</span>
             </button>
             
-            <div class="grid grid-cols-2 gap-4 w-full">
+            <div class="grid grid-cols-3 gap-4 w-full">
                 <button class="btn m-0 text-sm !border-yellow-600 !text-yellow-400 hover:!text-black hover:!bg-yellow-400" onclick="showAchievements()" onmouseenter="AudioSys && AudioSys.play('ui_hover')">
                     <span class="mr-2">🏆</span> 成就
                 </button>
-                <button class="btn m-0 text-sm !border-gray-500 !text-gray-300 hover:!bg-gray-200 hover:!text-black" onclick="showSettings()" data-text="btn_settings" onmouseenter="AudioSys && AudioSys.play('ui_hover')">系统</button>
+                <button class="btn m-0 text-sm !border-purple-600 !text-purple-400 hover:!text-black hover:!bg-purple-400" onclick="showEquipmentScreen()" onmouseenter="AudioSys && AudioSys.play('ui_hover')">
+                    <span class="mr-2">⚙️</span> 装备
+                </button>
+                <button id="btn-hangar" class="btn m-0 text-sm !border-orange-500 !text-orange-400 hover:!text-black hover:!bg-orange-400 shadow-[0_0_12px_rgba(255,165,0,0.3)]" onclick="showShop()" data-text="btn_hangar" onmouseenter="AudioSys && AudioSys.play('ui_hover')"><span class="mr-2">🔧</span> 改造</button>
             </div>
             
             <div class="grid grid-cols-1 gap-4 w-full" id="btn-leaderboard-container" style="display: none;">
@@ -711,7 +796,7 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
             </div>
 
             <div class="grid grid-cols-1 gap-4 w-full">
-                <button id="btn-hangar" class="btn m-0 w-full text-sm !border-gray-500 !text-gray-300 hover:!bg-gray-200 hover:!text-black" onclick="showShop()" data-text="btn_hangar" onmouseenter="AudioSys && AudioSys.play('ui_hover')">机库升级</button>
+                <button class="btn m-0 w-full text-sm !border-gray-500 !text-gray-300 hover:!bg-gray-200 hover:!text-black" onclick="showSettings()" data-text="btn_settings" onmouseenter="AudioSys && AudioSys.play('ui_hover')">系统设置</button>
             </div>
         </div>
         
@@ -815,7 +900,7 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
     </div>
 
     <div id="game-over-overlay" style="display:none; position:fixed; top:0; left:0; width:100vw; height:100vh; z-index:80; pointer-events:none; background:rgba(0,0,0,0); transition:background 0.5s;">
-        <div id="game-over-text" style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); font-family:'Orbitron',monospace; font-size:72px; font-weight:900; color:#ff0055; text-shadow:0 0 30px #ff0055, 0 0 60px #ff0055, 0 0 90px #ff0055; opacity:0; letter-spacing:8px;">GAME OVER</div>
+        <div id="game-over-text" style="position:fixed; top:50%; left:50%; transform:translate(-50%,-50%); text-align:center; font-family:'Orbitron',monospace; font-size:72px; font-weight:900; color:#ff0055; text-shadow:0 0 30px #ff0055, 0 0 60px #ff0055, 0 0 90px #ff0055; opacity:0; letter-spacing:8px;">GAME OVER</div>
     </div>
 
     <!-- 4. Achievements Screen -->
@@ -824,6 +909,70 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
         <div class="text-white mb-4 font-mono text-xs text-gray-400 bg-black/50 px-4 py-1 rounded">达成成就可获得研发资金与新型机体</div>
         <div class="w-full max-w-2xl px-4 h-96 overflow-y-auto bg-black/60 border border-yellow-900/30 p-4 shadow-[inset_0_0_20px_rgba(0,0,0,0.8)]" id="ach-list"></div>
         <button class="btn mt-6" onclick="backToMenu()" onmouseenter="AudioSys && AudioSys.play('ui_hover')">返回主屏幕</button>
+    </div>
+
+    <div id="equipment-screen" class="screen">
+        <h2 class="text-3xl neon-text-primary mb-2 orbitron">装备仓库</h2>
+        <div class="text-white mb-4 font-mono text-xs text-gray-400 bg-black/50 px-4 py-1 rounded">击败BOSS获取装备，组装你的专属机甲</div>
+        
+        <div class="flex w-full max-w-6xl gap-4 px-4" style="height: calc(100vh - 200px); min-height: 400px;">
+            <div class="w-1/3 flex flex-col gap-3">
+                <div class="bg-black/60 border border-cyan-900/50 rounded p-4 flex-shrink-0">
+                    <h3 class="text-cyan-400 font-bold mb-2 text-center text-sm">机甲状态</h3>
+                    <div class="relative h-40 flex items-center justify-center">
+                        <div id="mech-preview-icon" class="text-6xl">🤖</div>
+                    </div>
+                    <div class="text-center text-yellow-400 font-bold mb-2">
+                        总战力: <span id="total-power">0</span>
+                    </div>
+                </div>
+                
+                <div class="bg-black/60 border border-cyan-900/50 rounded p-3 flex-1 overflow-y-auto">
+                    <h3 class="text-cyan-400 font-bold mb-2 text-sm">已装备部件</h3>
+                    <div id="equipped-slots" class="grid grid-cols-2 gap-2"></div>
+                </div>
+                
+                <div class="bg-black/60 border border-cyan-900/50 rounded p-3 flex-shrink-0">
+                    <h3 class="text-cyan-400 font-bold mb-2 text-sm">属性加成</h3>
+                    <div id="total-stats" class="text-xs space-y-1"></div>
+                </div>
+            </div>
+            
+            <div class="w-2/3 flex flex-col">
+                <div class="flex justify-between items-center mb-3 px-1 flex-shrink-0">
+                    <div class="flex gap-2">
+                        <select id="equip-filter-select" class="bg-black/60 border border-cyan-900/50 rounded px-2 py-1 text-cyan-300 text-xs" onchange="filterEquipment()">
+                            <option value="all">全部部位</option>
+                            <option value="core">核心引擎</option>
+                            <option value="armor">装甲板</option>
+                            <option value="weapon_slot">武器挂载</option>
+                            <option value="thruster">推进器</option>
+                            <option value="sensor">传感器</option>
+                            <option value="module">扩展模块</option>
+                        </select>
+                        <select id="equip-sort-select" class="bg-black/60 border border-cyan-900/50 rounded px-2 py-1 text-cyan-300 text-xs" onchange="sortEquipment()">
+                            <option value="rarity">按品质</option>
+                            <option value="power">按战力</option>
+                            <option value="slot">按部位</option>
+                            <option value="time">按时间</option>
+                        </select>
+                    </div>
+                    <div class="text-gray-400 text-xs">
+                        容量: <span id="inventory-count">0</span> / 50
+                    </div>
+                </div>
+                
+                <div id="equipment-grid" class="grid grid-cols-4 gap-2 overflow-y-auto flex-1 bg-black/40 border border-cyan-900/30 rounded p-2 content-start">
+                </div>
+            </div>
+        </div>
+        
+        <button class="btn mt-4" onclick="backToMenu()" onmouseenter="AudioSys && AudioSys.play('ui_hover')">返回主屏幕</button>
+        
+        <div id="equipment-detail-panel" class="fixed bottom-4 left-1/2 transform -translate-x-1/2 bg-black/95 border border-cyan-900/50 rounded-lg p-4 w-11/12 max-w-md hidden z-50" style="backdrop-filter: blur(10px);">
+            <div id="detail-content"></div>
+            <div id="detail-actions" class="flex justify-center gap-3 mt-4"></div>
+        </div>
     </div>
 
     <!-- 5. Settings/Shop/Guide/LevelUp/Result -->
@@ -944,6 +1093,7 @@ window.addEventListener("DOMContentLoaded",()=>{const t=document.createElement("
             <button class="tab-btn" onclick="switchTab('weapons')" onmouseenter="AudioSys && AudioSys.play('ui_hover')">武器</button>
             <button class="tab-btn" onclick="switchTab('passives')" onmouseenter="AudioSys && AudioSys.play('ui_hover')">芯片</button>
             <button class="tab-btn" onclick="switchTab('evolution')" onmouseenter="AudioSys && AudioSys.play('ui_hover')">突破</button>
+            <button class="tab-btn" onclick="switchTab('equipment')" onmouseenter="AudioSys && AudioSys.play('ui_hover')">装备</button>
             <button class="tab-btn" onclick="switchTab('enemies')" onmouseenter="AudioSys && AudioSys.play('ui_hover')">敌军</button>
             <button class="tab-btn" onclick="switchTab('pickups')" onmouseenter="AudioSys && AudioSys.play('ui_hover')">掉落</button>
         </div>
@@ -1195,6 +1345,99 @@ const TEXTS = {
 
 const ICONS = { laser: '🔴', lightning: '⚡', boomerang: '🪃', wingman: '🛩️', timebomb: '🚀', rapid: '🔋', magnet: '🧲', speed: '💨', shield: '🛡️', multishot: '🔱', dmg: '💪', spectral: '🌈', thunder: '🌩️', spiral: '🌀', fleet: '🛸', doom: '☢️', lb_dmg: '⚔️', lb_heal: '🩹', lb_gold: '💰', mod_burning: '🔥', mod_slow: '❄️', mod_attack: '⚔️', mod_weak: '💔', mod_boss: '👑', mod_clear: '💥', ult_katyusha: '🚀', ult_blackhole: '🕳️', ult_thunder: '⛈️', ult_berserk: '💢', ult_invincible: '⭐', ult_default: '💥', bombcharge: '⚡' };
 
+const EQUIPMENT_RARITY = {
+    COMMON: { id: 0, name: '普通', color: '#aaaaaa', glowColor: '#888888', nameCN: '白色' },
+    RARE: { id: 1, name: '稀有', color: '#00ff88', glowColor: '#00ff88', nameCN: '绿色' },
+    EPIC: { id: 2, name: '史诗', color: '#ff4466', glowColor: '#ff0055', nameCN: '红色' },
+    LEGENDARY: { id: 3, name: '传说', color: '#ffd700', glowColor: '#ffea00', nameCN: '金色' }
+};
+
+const EQUIPMENT_SLOT = {
+    core: { id: 'core', name: '核心引擎', icon: '⚙️', desc: '影响基础伤害和能量回复' },
+    armor: { id: 'armor', name: '装甲板', icon: '🛡️', desc: '影响生命值和护盾' },
+    weapon_slot: { id: 'weapon_slot', name: '武器挂载', icon: '🔫', desc: '影响武器伤害和射速' },
+    thruster: { id: 'thruster', name: '推进器', icon: '🚀', desc: '影响移动速度和闪避' },
+    sensor: { id: 'sensor', name: '传感器', icon: '📡', desc: '影响拾取范围和暴击率' },
+    module: { id: 'module', name: '扩展模块', icon: '📦', desc: '提供特殊效果加成' }
+};
+
+const EQUIPMENT_STATS = {
+    damage: { name: '攻击力', icon: '⚔️', format: (v) => `+${v}%` },
+    hp: { name: '生命值', icon: '❤️', format: (v) => `+${v}` },
+    shield: { name: '护盾值', icon: '🛡️', format: (v) => `+${v}` },
+    speed: { name: '移动速度', icon: '💨', format: (v) => `+${v}%` },
+    cooldown: { name: '冷却缩减', icon: '⏱️', format: (v) => `-${v}%` },
+    critRate: { name: '暴击率', icon: '💥', format: (v) => `+${v}%` },
+    critDamage: { name: '暴击伤害', icon: '💢', format: (v) => `+${v}%` },
+    magnet: { name: '拾取范围', icon: '🧲', format: (v) => `+${v}%` },
+    goldBonus: { name: '金币加成', icon: '💰', format: (v) => `+${v}%` },
+    xpBonus: { name: '经验加成', icon: '✨', format: (v) => `+${v}%` }
+};
+
+const EQUIPMENT_EFFECTS = {
+    common: {
+        burning_touch: { name: '灼热触感', desc: '攻击有10%概率点燃敌人', icon: '🔥' },
+        frost_coating: { name: '冰霜涂层', desc: '攻击有8%概率冻结敌人', icon: '❄️' },
+        nano_repair: { name: '纳米修复', desc: '每秒恢复0.5%最大生命值', icon: '💚' },
+        speed_boost: { name: '推进增强', desc: '移动速度+15%', icon: '⚡' },
+        gold_finder: { name: '财富感知', desc: '金币掉落率+20%', icon: '💰' }
+    },
+    epic: {
+        chain_lightning: { name: '连锁闪电', desc: '攻击有15%概率触发闪电链', icon: '⚡' },
+        vampiric_core: { name: '吸血核心', desc: '造成伤害的3%转化为生命值', icon: '🩸' },
+        reflect_shield: { name: '反射护盾', desc: '护盾存在时反弹10%伤害', icon: '🔄' },
+        overdrive: { name: '过载模式', desc: '生命值低于30%时攻击力+25%', icon: '🔴' },
+        phase_shift: { name: '相位转移', desc: '每10秒获得1秒无敌', icon: '👻' }
+    },
+    legendary: {
+        phoenix_heart: { name: '不死鸟之心', desc: '死亡后复活一次，恢复50%生命值', icon: '🔥' },
+        time_warp: { name: '时间扭曲', desc: '受到致命伤害时时间减缓3秒', icon: '⏰' },
+        quantum_split: { name: '量子分裂', desc: '攻击有5%概率触发双倍伤害', icon: '✨' },
+        void_absorption: { name: '虚空吸收', desc: '击杀敌人恢复2%最大生命值', icon: '🕳️' },
+        stellar_fury: { name: '星怒', desc: '每30秒释放一次全屏伤害', icon: '🌟' },
+        destiny_link: { name: '命运链接', desc: '受到伤害的30%由最近敌人承担', icon: '🔗' }
+    }
+};
+
+const DROP_RATES = {
+    boss: { 0: 0.35, 1: 0.35, 2: 0.25, 3: 0.05 },
+    elite: { 0: 0.65, 1: 0.25, 2: 0.08, 3: 0.02 }
+};
+
+const DISMANTLE_REWARDS = {
+    0: { gold: 100, materials: 1 },
+    1: { gold: 300, materials: 3 },
+    2: { gold: 800, materials: 8 },
+    3: { gold: 2000, materials: 20 }
+};
+
+const ENHANCE_CONFIG = {
+    maxLevel: 10,
+    baseCost: 500,
+    costMultiplier: 1.5,
+    statBonusPerLevel: 0.1,
+    successRateBase: 1.0,
+    successRateDecay: 0.08,
+    qualityUpgrade: {
+        baseCost: 5000,
+        costMultiplier: 3.0,
+        statBonus: 0.3,
+        getUpgradeCost: (currentRarityId) => {
+            return Math.floor(ENHANCE_CONFIG.qualityUpgrade.baseCost * Math.pow(ENHANCE_CONFIG.qualityUpgrade.costMultiplier, currentRarityId));
+        }
+    },
+    getCost: (level, rarity) => {
+        return Math.floor(ENHANCE_CONFIG.baseCost * Math.pow(ENHANCE_CONFIG.costMultiplier, level) * (1 + rarity.id * 0.5));
+    },
+    getSuccessRate: (level) => {
+        return Math.max(0.3, ENHANCE_CONFIG.successRateBase - level * ENHANCE_CONFIG.successRateDecay);
+    }
+};
+
+const SLOT_WEIGHTS = { core: 15, armor: 20, weapon_slot: 20, thruster: 15, sensor: 15, module: 15 };
+
+const STAT_WEIGHTS = { damage: 2, hp: 0.5, shield: 0.8, speed: 1.5, cooldown: 2.5, critRate: 3, critDamage: 1.5, magnet: 0.3, goldBonus: 0.2, xpBonus: 0.2 };
+
 const PICKUP_INFO = {
     xp: { name: '经验值', icon: '🟢', type: '消耗品', desc: '绿色的能量球，蕴含着战斗经验。', usage: '靠近自动吸收，积累经验值提升等级，解锁武器升级和被动技能。', highlight: '角色成长的核心资源，提升等级可获得强力升级！' },
     gold: { name: '金币', icon: '💰', type: '货币', desc: '闪亮的金币，星际贸易的通用货币。', usage: '靠近自动吸收，可在机库中购买永久升级。' },
@@ -1202,9 +1445,10 @@ const PICKUP_INFO = {
     magnet: { name: '磁力场', icon: '🧲', type: '消耗品', desc: '释放强力磁场，吸引所有掉落物。', usage: '靠近自动吸收，激活后所有掉落物将被吸引到战机位置。' },
     freeze: { name: '时间冻结', icon: '❄️', type: '消耗品', desc: '极寒能量结晶，冻结所有敌人。', usage: '靠近自动吸收，使所有敌人暂时无法移动和攻击。' },
     star: { name: '无敌星', icon: '⭐', type: '消耗品', desc: '闪耀的星之能量，提供短暂无敌保护。', usage: '靠近自动吸收，获得数秒无敌时间，不受任何伤害。' },
-    attack_up: { name: '攻击强化', icon: '⚡', type: '消耗品', desc: '红色闪电能量，大幅提升火力。', usage: '靠近自动吸收，攻击力提升50%，持续一段时间。' },
-    energy: { name: '能量核心', icon: '🔮', type: '消耗品', desc: '紫色能量核心，为大招充能。', usage: '靠近自动吸收，若大招未满则充满能量，否则释放全屏爆炸。' },
-    level_up_item: { name: '升级模块', icon: '⬆️', type: '消耗品', desc: '金色升级模块，直接提升战机能力。', usage: '靠近自动吸收，立即触发升级选择界面。', highlight: '稀有道具！优先拾取！' }
+    attack_up: { name: '攻击强化', icon: '💪', type: '消耗品', desc: '红色闪电能量，大幅提升火力。', usage: '靠近自动吸收，攻击力提升50%，持续一段时间。' },
+    energy: { name: '能量核心', icon: '⚡', type: '消耗品', desc: '紫色能量核心，为大招充能。', usage: '靠近自动吸收，若大招未满则充满能量，否则释放全屏爆炸。' },
+    level_up_item: { name: '升级模块', icon: '⬆️', type: '消耗品', desc: '金色升级模块，直接提升战机能力。', usage: '靠近自动吸收，立即触发升级选择界面。', highlight: '稀有道具！优先拾取！' },
+    equipment: { name: '装备', icon: '⚙️', type: '装备', desc: '击败BOSS掉落的装备，可大幅提升机体属性。', usage: '靠近自动吸收，进入装备背包。', highlight: '颜色代表品质：白<绿<红<金' }
 };
 
 const MODES = { easy: { name: "新兵", maxWave: 10, mult: 1.0, desc: "通关第10波解锁老兵难度" }, normal: { name: "老兵", maxWave: 20, mult: 3.0, desc: "通关第20波解锁精英难度" }, hard: { name: "精英", maxWave: 30, mult: 6.0, desc: "通关第30波解锁无尽模式" }, endless: { name: "无尽", maxWave: 999, mult: 10.0, desc: "生存挑战，发生随机突发事件" } };
@@ -1220,22 +1464,55 @@ const SHIPS = {
 };
 
 const ACHIEVEMENTS = [
-    { id: 'win_easy', title: '初战告捷', desc: '通关新兵模式', reward: 500, check: (s) => s.win && s.mode === 'easy' },
-    { id: 'win_normal', title: '战场老兵', desc: '通关老兵模式', reward: 1000, check: (s) => s.win && s.mode === 'normal' },
-    { id: 'win_hard', title: '精英指挥官', desc: '通关精英模式 (解锁幽影机体)', reward: 2000, check: (s) => s.win && s.mode === 'hard' },
-    { id: 'endless_10', title: '初入深空', desc: '无尽模式生存10波', reward: 1000, check: (s) => s.mode === 'endless' && s.wave >= 10 },
-    { id: 'endless_20', title: '无尽梦魇', desc: '无尽模式生存20波 (解锁激光者机体)', reward: 2000, check: (s) => s.mode === 'endless' && s.wave >= 20 },
-    { id: 'endless_30', title: '虚空行者', desc: '无尽模式生存30波 (解锁神明机体)', reward: 5000, check: (s) => s.mode === 'endless' && s.wave >= 30 },
-    { id: 'endless_50', title: '星际传奇', desc: '无尽模式生存50波 (解锁分身)', reward: 10000, check: (s) => s.mode === 'endless' && s.wave >= 50 },
-    { id: 'endless_60', title: '重组协议', desc: '无尽模式生存60波 (解锁复活重组)', reward: 15000, check: (s) => s.mode === 'endless' && s.wave >= 60 },
-    { id: 'endless_100', title: '星际神明', desc: '无尽模式生存100波 (解锁分身2)', reward: 50000, check: (s) => s.mode === 'endless' && s.wave >= 100 },
-    { id: 'kill_100', title: '清道夫', desc: '单局击杀100敌', reward: 200, check: (s) => s.kills >= 100 },
-    { id: 'kill_500', title: '收割者', desc: '单局击杀500敌', reward: 500, check: (s) => s.kills >= 500 },
-    { id: 'kill_1000', title: '千人斩', desc: '单局击杀1000敌', reward: 1500, check: (s) => s.kills >= 1000 },
-    { id: 'gold_1000', title: '第一桶金', desc: '单局赚取1000金币', reward: 500, check: (s) => s.goldEarned >= 1000 },
-    { id: 'gold_5000', title: '赏金猎人', desc: '单局赚取5000金币', reward: 2000, check: (s) => s.goldEarned >= 5000 },
-    { id: 'no_hit_5', title: '毫发无伤', desc: '坚持5波未受到伤害', reward: 1000, check: (s) => s.wave >= 5 && !s.hit },
-    { id: 'full_hp', title: '完美状态', desc: '满血通关/结束 (且至少第10波)', reward: 2000, check: (s) => s.wave >= 10 && s.hpPct >= 1 }
+    // 战斗大师
+    { id: 'battle_first_blood', title: '首杀', desc: '击杀第一个敌人', reward: 100, category: 'battle', icon: '⚔️', check: (s) => s.kills >= 1 },
+    { id: 'battle_kill_50', title: '初露锋芒', desc: '单局击杀50个敌人', reward: 200, category: 'battle', icon: '⚔️', check: (s) => s.kills >= 50 },
+    { id: 'battle_kill_200', title: '战场屠夫', desc: '单局击杀200个敌人', reward: 800, category: 'battle', icon: '⚔️', check: (s) => s.kills >= 200 },
+    { id: 'battle_kill_1500', title: '万人斩', desc: '单局击杀1500个敌人', reward: 2000, category: 'battle', icon: '⚔️', check: (s) => s.kills >= 1500 },
+    { id: 'battle_kill_3000', title: '杀戮机器', desc: '单局击杀3000个敌人', reward: 5000, category: 'battle', icon: '⚔️', check: (s) => s.kills >= 3000 },
+    { id: 'battle_boss_kill', title: '首杀BOSS', desc: '首次击杀BOSS', reward: 500, category: 'battle', icon: '⚔️', check: (s) => s.bossKills >= 1 },
+    { id: 'battle_boss_kill_5', title: 'BOSS猎手', desc: '单局击杀5个BOSS', reward: 2000, category: 'battle', icon: '⚔️', check: (s) => s.bossKills >= 5 },
+    { id: 'battle_boss_kill_10', title: 'BOSS终结者', desc: '单局击杀10个BOSS', reward: 5000, category: 'battle', icon: '⚔️', check: (s) => s.bossKills >= 10 },
+    
+    // 生存专家
+    { id: 'survive_wave_5', title: '初入战场', desc: '完成5波敌人', reward: 200, category: 'survive', icon: '🛡️', check: (s) => s.wave >= 5 },
+    { id: 'survive_wave_15', title: '战场老兵', desc: '完成15波敌人', reward: 500, category: 'survive', icon: '🛡️', check: (s) => s.wave >= 15 },
+    { id: 'survive_wave_25', title: '生存大师', desc: '完成25波敌人', reward: 1500, category: 'survive', icon: '🛡️', check: (s) => s.wave >= 25 },
+    { id: 'survive_wave_40', title: '极限生存', desc: '完成40波敌人', reward: 3000, category: 'survive', icon: '🛡️', check: (s) => s.wave >= 40 },
+    { id: 'survive_no_hit_10', title: '钢铁防线', desc: '10波未受到伤害', reward: 1500, category: 'survive', icon: '🛡️', check: (s) => s.wave >= 10 && !s.hit },
+    
+    // 财富积累
+    { id: 'wealth_gold_2000', title: '小富即安', desc: '单局赚取2000金币', reward: 300, category: 'wealth', icon: '💰', check: (s) => s.goldEarned >= 2000 },
+    { id: 'wealth_gold_10000', title: '财富自由', desc: '单局赚取10000金币', reward: 1000, category: 'wealth', icon: '💰', check: (s) => s.goldEarned >= 10000 },
+    { id: 'wealth_gold_50000', title: '商业大亨', desc: '单局赚取50000金币', reward: 5000, category: 'wealth', icon: '💰', check: (s) => s.goldEarned >= 50000 },
+    
+    // 装备大师
+    { id: 'equipment_first', title: '装备入门', desc: '获得第一件装备', reward: 200, category: 'equipment', icon: '📦', check: (s) => s.equipmentCount >= 1 },
+    { id: 'equipment_rare', title: '稀有收藏家', desc: '获得第一件稀有装备', reward: 500, category: 'equipment', icon: '📦', check: (s) => s.rareEquipmentCount >= 1 },
+    { id: 'equipment_epic', title: '史诗猎人', desc: '获得第一件史诗装备', reward: 1000, category: 'equipment', icon: '📦', check: (s) => s.epicEquipmentCount >= 1 },
+    { id: 'equipment_legendary', title: '传奇寻宝者', desc: '获得第一件传奇装备', reward: 3000, category: 'equipment', icon: '📦', check: (s) => s.legendaryEquipmentCount >= 1 },
+    
+    // 技术挑战
+    { id: 'challenge_no_upgrade', title: '原始之力', desc: '不升级任何武器通关', reward: 2000, category: 'challenge', icon: '🏆', check: (s) => s.win && s.upgradeCount === 0 },
+    { id: 'challenge_perfect', title: '完美通关', desc: '满血、无伤通关', reward: 5000, category: 'challenge', icon: '🏆', check: (s) => s.win && s.hpPct >= 1 && !s.hit },
+    
+    // 原有成就
+    { id: 'win_easy', title: '初战告捷', desc: '通关新兵模式', reward: 500, category: 'survive', icon: '🛡️', check: (s) => s.win && s.mode === 'easy' },
+    { id: 'win_normal', title: '战场老兵', desc: '通关老兵模式', reward: 1000, category: 'survive', icon: '🛡️', check: (s) => s.win && s.mode === 'normal' },
+    { id: 'win_hard', title: '精英指挥官', desc: '通关精英模式 (解锁幽影机体)', reward: 2000, category: 'survive', icon: '🛡️', check: (s) => s.win && s.mode === 'hard' },
+    { id: 'endless_10', title: '初入深空', desc: '无尽模式生存10波', reward: 1000, category: 'survive', icon: '🛡️', check: (s) => s.mode === 'endless' && s.wave >= 10 },
+    { id: 'endless_20', title: '无尽梦魇', desc: '无尽模式生存20波 (解锁激光者机体)', reward: 2000, category: 'survive', icon: '🛡️', check: (s) => s.mode === 'endless' && s.wave >= 20 },
+    { id: 'endless_30', title: '虚空行者', desc: '无尽模式生存30波 (解锁神明机体)', reward: 5000, category: 'survive', icon: '🛡️', check: (s) => s.mode === 'endless' && s.wave >= 30 },
+    { id: 'endless_50', title: '星际传奇', desc: '无尽模式生存50波 (解锁分身)', reward: 10000, category: 'survive', icon: '🛡️', check: (s) => s.mode === 'endless' && s.wave >= 50 },
+    { id: 'endless_60', title: '重组协议', desc: '无尽模式生存60波 (解锁复活重组)', reward: 15000, category: 'survive', icon: '🛡️', check: (s) => s.mode === 'endless' && s.wave >= 60 },
+    { id: 'endless_100', title: '星际神明', desc: '无尽模式生存100波 (解锁分身2)', reward: 50000, category: 'survive', icon: '🛡️', check: (s) => s.mode === 'endless' && s.wave >= 100 },
+    { id: 'kill_100', title: '清道夫', desc: '单局击杀100敌', reward: 200, category: 'battle', icon: '⚔️', check: (s) => s.kills >= 100 },
+    { id: 'kill_500', title: '收割者', desc: '单局击杀500敌', reward: 500, category: 'battle', icon: '⚔️', check: (s) => s.kills >= 500 },
+    { id: 'kill_1000', title: '千人斩', desc: '单局击杀1000敌', reward: 1500, category: 'battle', icon: '⚔️', check: (s) => s.kills >= 1000 },
+    { id: 'gold_1000', title: '第一桶金', desc: '单局赚取1000金币', reward: 500, category: 'wealth', icon: '💰', check: (s) => s.goldEarned >= 1000 },
+    { id: 'gold_5000', title: '赏金猎人', desc: '单局赚取5000金币', reward: 2000, category: 'wealth', icon: '💰', check: (s) => s.goldEarned >= 5000 },
+    { id: 'no_hit_5', title: '毫发无伤', desc: '坚持5波未受到伤害', reward: 1000, category: 'survive', icon: '🛡️', check: (s) => s.wave >= 5 && !s.hit },
+    { id: 'full_hp', title: '完美状态', desc: '满血通关/结束 (且至少第10波)', reward: 2000, category: 'survive', icon: '🛡️', check: (s) => s.wave >= 10 && s.hpPct >= 1 }
 ];
 
 const WEAPONS = { 
@@ -1611,6 +1888,14 @@ if (saveData.settings.showDamageFloat === undefined) { saveData.settings.showDam
 let settings = saveData.settings;
 if (!saveData.unlocks) saveData.unlocks = {};
 if (!saveData.achievements) saveData.achievements = [];
+if (!saveData.achievementStats) saveData.achievementStats = {
+    totalUnlocked: 0,
+    unlockedAchievements: {},
+    categoryStats: {},
+    streak: 0,
+    lastUnlockDate: null,
+    totalGoldEarned: 0
+};
 if (!saveData.upgrades) saveData.upgrades = {};
 if (saveData.unlocks.win_easy === undefined) saveData.unlocks.win_easy = !!saveData.unlocks.normal;
 if (saveData.unlocks.win_normal === undefined) saveData.unlocks.win_normal = !!saveData.unlocks.hard;
@@ -1643,6 +1928,13 @@ Object.keys(saveData.ultMods).forEach(key => {
         saveData.ultModLevels[key] = 1;
     }
 });
+
+if (!saveData.equipmentInventory) saveData.equipmentInventory = [];
+if (!saveData.equippedItems) saveData.equippedItems = { core: null, armor: null, weapon_slot: null, thruster: null, sensor: null, module: null };
+if (!saveData.equipmentStats) saveData.equipmentStats = { damage: 0, hp: 0, shield: 0, speed: 0, cooldown: 0, critRate: 0, critDamage: 0, magnet: 0, goldBonus: 0, xpBonus: 0 };
+if (!saveData.activeEffects) saveData.activeEffects = [];
+if (!saveData.totalEquipmentPower) saveData.totalEquipmentPower = 0;
+if (!saveData.dismantleCount) saveData.dismantleCount = 0;
 
 if (saveData.upgrades) {
     for (let key in SHOP_CONFIG) {
@@ -1686,6 +1978,44 @@ let attackBoostTimer = 0;
 const ATTACK_BOOST_MULT = 1.5;
 const ATTACK_BOOST_DURATION = 300;
 let perfLoadLevel = 0;
+let victoryCountdown = 0;
+let victoryCountdownStart = 0;
+
+const INSTANT_CULL_PROJECTILE_TYPES = new Set(['basic', 'wingman_bullet', 'fleet_laser', 'missile', 'doom_missile', 'giant_missile', 'rang', 'enemy_bullet', 'enemy_missile', 'enemy_accel_bullet']);
+
+const isProjectileOutOfScreen = (p) => p.x < 0 || p.x > canvas.width || p.y < 0 || p.y > canvas.height;
+
+const shouldInstantCullProjectile = (p) => INSTANT_CULL_PROJECTILE_TYPES.has(p.type) && isProjectileOutOfScreen(p);
+
+const canLockEnemyTarget = (e) => !!e && !e.marked && e.combatActive && e.role !== 'minion';
+
+function createEnemyBullet(x, y, angle, speed, dmg, color, life = 250) {
+    return {
+        type: 'enemy_bullet',
+        team: 'enemy',
+        x: x,
+        y: y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        dmg: dmg,
+        color: color,
+        life: life
+    };
+}
+
+function createPlayerBullet(x, y, angle, speed, dmg, color, life = 250, type = 'basic') {
+    return {
+        type: type,
+        team: 'player',
+        x: x,
+        y: y,
+        vx: Math.cos(angle) * speed,
+        vy: Math.sin(angle) * speed,
+        dmg: dmg,
+        color: color,
+        life: life
+    };
+}
 let avgFrameMs = 16.7;
 let lastFrameTs = performance.now();
 
@@ -1885,7 +2215,7 @@ function triggerCheatCode() {
     }
 }
 
-let gameWave = 1; let waveTimer = 0; let freezeTimer = 0; let isWaveBossActive = false; let runStats = { kills: 0, goldEarned: 0, hit: false }; 
+let gameWave = 1; let waveTimer = 0; let freezeTimer = 0; let isWaveBossActive = false; let runStats = { kills: 0, bossKills: 0, goldEarned: 0, hit: false, equipmentCount: 0, rareEquipmentCount: 0, epicEquipmentCount: 0, legendaryEquipmentCount: 0, upgradeCount: 0 }; 
 
 // --- 星空背景系统 ---
 let bgStars = [];
@@ -2736,6 +3066,327 @@ function updateWingmenPositions(obj, count, isEvo, spd) {
     }
 }
 
+class Equipment {
+    constructor(slot, rarity, bossWave) {
+        this.id = `eq_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        this.slot = slot;
+        this.rarity = rarity;
+        this.sourceWave = bossWave;
+        this.createTime = Date.now();
+        this.stats = this.generateStats(rarity, bossWave);
+        this.effects = this.generateEffects(rarity);
+        this.name = this.generateName(slot, rarity);
+        this.icon = EQUIPMENT_SLOT[slot].icon;
+        this.enhanceLevel = 0;
+        this.maxEnhanceLevel = 10;
+    }
+    
+    generateStats(rarity, bossWave) {
+        const baseMult = 1 + Math.max(0, (bossWave - 10)) * 0.05;
+        const ranges = {
+            0: { min: 0.5, max: 1.0 },
+            1: { min: 1.0, max: 1.5 },
+            2: { min: 1.5, max: 2.2 },
+            3: { min: 2.2, max: 3.0 }
+        };
+        const range = ranges[rarity.id] || ranges[0];
+        const mult = range.min + Math.random() * (range.max - range.min);
+        return this.getSlotSpecificStats(this.slot, mult * baseMult, rarity);
+    }
+    
+    getSlotSpecificStats(slot, mult, rarity) {
+        const statConfigs = {
+            core: [
+                { stat: 'damage', weight: 60, base: 15 },
+                { stat: 'cooldown', weight: 30, base: 5 },
+                { stat: 'critRate', weight: 10, base: 3 }
+            ],
+            armor: [
+                { stat: 'hp', weight: 50, base: 50 },
+                { stat: 'shield', weight: 35, base: 20 },
+                { stat: 'damage', weight: 15, base: 5 }
+            ],
+            weapon_slot: [
+                { stat: 'damage', weight: 50, base: 20 },
+                { stat: 'critRate', weight: 25, base: 5 },
+                { stat: 'critDamage', weight: 25, base: 15 }
+            ],
+            thruster: [
+                { stat: 'speed', weight: 60, base: 10 },
+                { stat: 'magnet', weight: 25, base: 15 },
+                { stat: 'hp', weight: 15, base: 20 }
+            ],
+            sensor: [
+                { stat: 'magnet', weight: 40, base: 20 },
+                { stat: 'critRate', weight: 30, base: 5 },
+                { stat: 'goldBonus', weight: 15, base: 10 },
+                { stat: 'xpBonus', weight: 15, base: 10 }
+            ],
+            module: [
+                { stat: 'damage', weight: 25, base: 10 },
+                { stat: 'hp', weight: 25, base: 30 },
+                { stat: 'speed', weight: 20, base: 8 },
+                { stat: 'goldBonus', weight: 15, base: 15 },
+                { stat: 'xpBonus', weight: 15, base: 15 }
+            ]
+        };
+        const config = statConfigs[slot] || statConfigs.module;
+        const stats = {};
+        const numStats = rarity.id >= 2 ? 3 : (rarity.id >= 1 ? 2 : 1);
+        const shuffled = [...config].sort(() => Math.random() - 0.5);
+        for (let i = 0; i < Math.min(numStats, shuffled.length); i++) {
+            const s = shuffled[i];
+            const variance = 0.8 + Math.random() * 0.4;
+            stats[s.stat] = Math.floor(s.base * mult * variance);
+        }
+        return stats;
+    }
+    
+    generateEffects(rarity) {
+        const effects = [];
+        if (rarity.id === 1) {
+            if (Math.random() < 0.3) {
+                const pool = Object.keys(EQUIPMENT_EFFECTS.common);
+                effects.push(pool[Math.floor(Math.random() * pool.length)]);
+            }
+        } else if (rarity.id === 2) {
+            const numEffects = Math.random() < 0.5 ? 1 : 2;
+            const pool = [...Object.keys(EQUIPMENT_EFFECTS.common), ...Object.keys(EQUIPMENT_EFFECTS.epic)];
+            for (let i = 0; i < numEffects; i++) {
+                const effect = pool[Math.floor(Math.random() * pool.length)];
+                if (!effects.includes(effect)) effects.push(effect);
+            }
+        } else if (rarity.id === 3) {
+            const numEffects = 2 + (Math.random() < 0.5 ? 1 : 0);
+            const pool = [...Object.keys(EQUIPMENT_EFFECTS.common), ...Object.keys(EQUIPMENT_EFFECTS.epic), ...Object.keys(EQUIPMENT_EFFECTS.legendary)];
+            for (let i = 0; i < numEffects; i++) {
+                const effect = pool[Math.floor(Math.random() * pool.length)];
+                if (!effects.includes(effect)) effects.push(effect);
+            }
+        }
+        return effects;
+    }
+    
+    generateName(slot, rarity) {
+        const prefixes = {
+            0: ['标准', '基础', '普通'],
+            1: ['强化', '改良', '精制'],
+            2: ['精英', '卓越', '史诗'],
+            3: ['传说', '神话', '永恒']
+        };
+        const slotNames = {
+            core: '核心引擎',
+            armor: '装甲板',
+            weapon_slot: '武器挂载',
+            thruster: '推进器',
+            sensor: '传感器',
+            module: '扩展模块'
+        };
+        const prefix = prefixes[rarity.id][Math.floor(Math.random() * 3)];
+        return `${prefix}${slotNames[slot]}`;
+    }
+    
+    getPower() {
+        let power = 0;
+        for (const [stat, value] of Object.entries(this.stats)) {
+            power += value * (STAT_WEIGHTS[stat] || 1);
+        }
+        power += this.effects.length * 20;
+        power *= (1 + this.rarity.id * 0.25);
+        return Math.floor(power);
+    }
+    
+    getEffectInfo(effectId) {
+        return EQUIPMENT_EFFECTS.common[effectId] || EQUIPMENT_EFFECTS.epic[effectId] || EQUIPMENT_EFFECTS.legendary[effectId] || null;
+    }
+}
+
+class EquipmentInventory {
+    constructor(maxSlots = 50) {
+        this.maxSlots = maxSlots;
+        this.sortMode = 'rarity';
+        this.filterMode = 'all';
+    }
+    
+    addItem(equipment) {
+        if (!saveData.equipmentInventory) saveData.equipmentInventory = [];
+        if (saveData.equipmentInventory.length >= this.maxSlots) {
+            return { success: false, reason: '背包已满' };
+        }
+        const eqData = {
+            id: equipment.id,
+            slot: equipment.slot,
+            rarity: equipment.rarity,
+            sourceWave: equipment.sourceWave,
+            createTime: equipment.createTime,
+            stats: equipment.stats,
+            effects: equipment.effects,
+            name: equipment.name,
+            icon: equipment.icon,
+            enhanceLevel: equipment.enhanceLevel || 0,
+            maxEnhanceLevel: equipment.maxEnhanceLevel || 10
+        };
+        saveData.equipmentInventory.push(eqData);
+        this.sort();
+        return { success: true };
+    }
+    
+    removeItem(equipmentId) {
+        if (!saveData.equipmentInventory) return false;
+        const index = saveData.equipmentInventory.findIndex(e => e.id === equipmentId);
+        if (index !== -1) {
+            saveData.equipmentInventory.splice(index, 1);
+            return true;
+        }
+        return false;
+    }
+    
+    sort() {
+        if (!saveData.equipmentInventory) return;
+        const sortFunctions = {
+            rarity: (a, b) => b.rarity.id - a.rarity.id,
+            power: (a, b) => (new Equipment(b.slot, b.rarity, b.sourceWave)).getPower() - (new Equipment(a.slot, a.rarity, a.sourceWave)).getPower(),
+            slot: (a, b) => a.slot.localeCompare(b.slot),
+            time: (a, b) => b.createTime - a.createTime
+        };
+        saveData.equipmentInventory.sort(sortFunctions[this.sortMode] || sortFunctions.rarity);
+    }
+    
+    filter() {
+        const allItems = [...(saveData.equipmentInventory || [])];
+        
+        if (saveData.equippedItems) {
+            for (const slot of Object.keys(saveData.equippedItems)) {
+                const equipped = saveData.equippedItems[slot];
+                if (equipped) {
+                    allItems.push(equipped);
+                }
+            }
+        }
+        
+        if (this.filterMode === 'all') return allItems;
+        return allItems.filter(e => e.slot === this.filterMode);
+    }
+    
+    getEquippedPower() {
+        let totalPower = 0;
+        if (!saveData.equippedItems) return 0;
+        for (const slot of Object.keys(saveData.equippedItems)) {
+            const equipped = saveData.equippedItems[slot];
+            if (equipped) {
+                const eq = new Equipment(equipped.slot, equipped.rarity, equipped.sourceWave);
+                eq.stats = equipped.stats;
+                eq.effects = equipped.effects;
+                totalPower += eq.getPower();
+            }
+        }
+        return totalPower;
+    }
+}
+
+let inventory = new EquipmentInventory();
+
+function calculateDropRate(enemyType, wave, modifiers = {}) {
+    const baseRates = DROP_RATES[enemyType] || DROP_RATES.elite;
+    let rates = { ...baseRates };
+    
+    const waveBonus = Math.min(0.5, wave * 0.01);
+    rates[2] = (rates[2] || 0) + waveBonus * 0.5;
+    rates[1] = (rates[1] || 0) + waveBonus * 0.3;
+    rates[3] = (rates[3] || 0) + waveBonus * 0.2;
+    rates[0] = Math.max(0, (rates[0] || 0) - waveBonus * 1.0);
+    
+    const difficultyBonus = {
+        easy: 0,
+        normal: 0.20,
+        hard: 0.35,
+        endless: 0.50
+    }[currentMode] || 0;
+    
+    if (difficultyBonus > 0) {
+        rates[3] = (rates[3] || 0) + difficultyBonus * 0.4;
+        rates[2] = (rates[2] || 0) + difficultyBonus * 0.3;
+        rates[1] = (rates[1] || 0) + difficultyBonus * 0.2;
+        rates[0] = Math.max(0, (rates[0] || 0) - difficultyBonus);
+    }
+    
+    if (modifiers.firstKill) {
+        rates[2] = (rates[2] || 0) + 0.10;
+        rates[0] = Math.max(0, (rates[0] || 0) - 0.10);
+    }
+    if (modifiers.noHit) {
+        rates[2] = (rates[2] || 0) + 0.15;
+        rates[0] = Math.max(0, (rates[0] || 0) - 0.15);
+    }
+    const total = Object.values(rates).reduce((a, b) => a + b, 0);
+    Object.keys(rates).forEach(k => rates[k] /= total);
+    return rates;
+}
+
+function rollEquipmentRarity(rates) {
+    const roll = Math.random();
+    let cumulative = 0;
+    const rarities = [EQUIPMENT_RARITY.COMMON, EQUIPMENT_RARITY.RARE, EQUIPMENT_RARITY.EPIC, EQUIPMENT_RARITY.LEGENDARY];
+    for (const rarity of rarities) {
+        cumulative += rates[rarity.id] || 0;
+        if (roll < cumulative) return rarity;
+    }
+    return EQUIPMENT_RARITY.COMMON;
+}
+
+function generateEquipmentDrop(enemy, wave, modifiers) {
+    const enemyType = enemy.isBoss ? 'boss' : 'elite';
+    const rates = calculateDropRate(enemyType, wave, modifiers);
+    const rarity = rollEquipmentRarity(rates);
+    const slots = Object.keys(SLOT_WEIGHTS);
+    const totalWeight = Object.values(SLOT_WEIGHTS).reduce((a, b) => a + b, 0);
+    let roll = Math.random() * totalWeight;
+    let selectedSlot = slots[0];
+    for (const slot of slots) {
+        roll -= SLOT_WEIGHTS[slot];
+        if (roll <= 0) {
+            selectedSlot = slot;
+            break;
+        }
+    }
+    return new Equipment(selectedSlot, rarity, wave);
+}
+
+function recalculateEquipmentStats() {
+    const stats = { damage: 0, hp: 0, shield: 0, speed: 0, cooldown: 0, critRate: 0, critDamage: 0, magnet: 0, goldBonus: 0, xpBonus: 0 };
+    const effects = [];
+    if (!saveData.equippedItems) {
+        saveData.equipmentStats = stats;
+        saveData.activeEffects = [];
+        saveData.totalEquipmentPower = 0;
+        return;
+    }
+    for (const slot of Object.keys(saveData.equippedItems)) {
+        const equipped = saveData.equippedItems[slot];
+        if (equipped && equipped.stats) {
+            for (const [stat, value] of Object.entries(equipped.stats)) {
+                stats[stat] = (stats[stat] || 0) + value;
+            }
+            if (equipped.effects) effects.push(...equipped.effects);
+        }
+    }
+    saveData.equipmentStats = stats;
+    saveData.activeEffects = [...new Set(effects)];
+    saveData.totalEquipmentPower = inventory.getEquippedPower();
+}
+
+function applyCritToDamage(baseDmg, x, y) {
+    if (!player || !player.critRate) return { dmg: baseDmg, isCrit: false };
+    if (Math.random() < player.critRate) {
+        const critDmg = baseDmg * (player.critDamage || 1.5);
+        if (x !== undefined && y !== undefined) {
+            showFloatText(x, y, "CRIT!", "#ff0055");
+        }
+        return { dmg: critDmg, isCrit: true };
+    }
+    return { dmg: baseDmg, isCrit: false };
+}
+
 class Player {
     constructor(shipType) {
         const conf = SHIPS[shipType]; const u = saveData.upgrades;
@@ -2798,6 +3449,57 @@ class Player {
         this.lastY = this.y;
         this.isMoving = false;
         this.moveDirection = { x: 0, y: 0 };
+        
+        this.applyEquipmentStats();
+    }
+    
+    applyEquipmentStats() {
+        const eqStats = saveData.equipmentStats || {};
+        
+        if (eqStats.damage) {
+            this.baseDmg *= (1 + eqStats.damage / 100);
+        }
+        if (eqStats.hp) {
+            this.maxHp += eqStats.hp;
+            this.hp = this.maxHp;
+        }
+        if (eqStats.shield) {
+            this.shieldMax += eqStats.shield;
+            this.shieldHp = this.shieldMax;
+        }
+        if (eqStats.speed) {
+            this.speed *= (1 + eqStats.speed / 100);
+        }
+        if (eqStats.magnet) {
+            this.magnet *= (1 + eqStats.magnet / 100);
+        }
+        if (eqStats.critRate) {
+            this.critRate = eqStats.critRate / 100;
+        } else {
+            this.critRate = 0;
+        }
+        if (eqStats.critDamage) {
+            this.critDamage = 1.5 + eqStats.critDamage / 100;
+        } else {
+            this.critDamage = 1.5;
+        }
+        if (eqStats.goldBonus) {
+            this.goldBonus = 1 + eqStats.goldBonus / 100;
+        } else {
+            this.goldBonus = 1;
+        }
+        if (eqStats.xpBonus) {
+            this.xpBonus = 1 + eqStats.xpBonus / 100;
+        } else {
+            this.xpBonus = 1;
+        }
+        if (eqStats.cooldown) {
+            this.cooldownReduction = eqStats.cooldown / 100;
+        } else {
+            this.cooldownReduction = 0;
+        }
+        
+        this.equipmentEffects = saveData.activeEffects || [];
     }
     
     getMagnetRange() { return this.magnet + (this.passives.magnet || 0) * 75; }
@@ -3124,9 +3826,162 @@ class Player {
         }
         ctx.restore();
     }
-    gainXp(amt) { this.xp += amt; this.checkLevelUp(); updateHUD(); showFloatText(this.x, this.y, "+" + Math.round(amt), "#00ff00"); }
+    gainXp(amt) { 
+        const xpBonus = this.xpBonus || 1;
+        const finalAmt = Math.round(amt * xpBonus);
+        this.xp += finalAmt; 
+        this.checkLevelUp(); 
+        updateHUD(); 
+        showFloatText(this.x, this.y, "+" + finalAmt, "#00ff00"); 
+    }
     checkLevelUp() { if(this.xp >= this.nextLvl) { this.level++; this.xp -= this.nextLvl; this.nextLvl = Math.floor(this.nextLvl * 1.2); triggerLevelUp(); return true; } return false; }
 }
+
+const ENEMY_VARIANTS = {
+    enhanced: {
+        name: '强化战士',
+        color: '#ff6600',
+        glowColor: 'rgba(255, 102, 0, 0.6)',
+        hpBonus: 0.5,
+        dmgBonus: 0.2,
+        speedBonus: 0,
+        availableModes: ['normal', 'hard', 'endless'],
+        icon: '💪',
+        desc: '生命值+50%，伤害+20%'
+    },
+    speedy: {
+        name: '极速行者',
+        color: '#ffff00',
+        glowColor: 'rgba(255, 255, 0, 0.6)',
+        hpBonus: 0,
+        dmgBonus: 0,
+        speedBonus: 0.4,
+        availableModes: ['normal', 'hard', 'endless'],
+        icon: '⚡',
+        desc: '移动速度+40%'
+    },
+    shielded: {
+        name: '护盾单位',
+        color: '#0088ff',
+        glowColor: 'rgba(0, 136, 255, 0.6)',
+        hpBonus: 0.3,
+        dmgBonus: 0,
+        speedBonus: 0,
+        shieldHpBonus: 0.5,
+        availableModes: ['hard', 'endless'],
+        icon: '🛡️',
+        desc: '拥有护盾，可抵挡一次伤害'
+    },
+    kamikaze: {
+        name: '自爆单位',
+        color: '#ff0000',
+        glowColor: 'rgba(255, 0, 0, 0.6)',
+        hpBonus: -0.2,
+        dmgBonus: 0.3,
+        speedBonus: 0.2,
+        explodeOnDeath: true,
+        explodeDamage: 50,
+        explodeRadius: 80,
+        availableModes: ['hard', 'endless'],
+        icon: '💥',
+        desc: '死亡时爆炸，造成范围伤害'
+    },
+    swarm: {
+        name: '蜂群领袖',
+        color: '#8800ff',
+        glowColor: 'rgba(136, 0, 255, 0.6)',
+        hpBonus: 0.8,
+        dmgBonus: 0.1,
+        speedBonus: -0.1,
+        spawnMinionsOnDeath: 3,
+        availableModes: ['hard', 'endless'],
+        icon: '🐝',
+        desc: '死亡时生成3个小怪'
+    },
+    toxic: {
+        name: '剧毒单位',
+        color: '#00ff00',
+        glowColor: 'rgba(0, 255, 0, 0.6)',
+        hpBonus: 0.2,
+        dmgBonus: 0,
+        speedBonus: 0,
+        poisonOnHit: true,
+        poisonDamage: 5,
+        poisonDuration: 180,
+        availableModes: ['endless'],
+        icon: '☠️',
+        desc: '攻击带中毒效果'
+    },
+    berserk: {
+        name: '狂暴战士',
+        color: '#ff0044',
+        glowColor: 'rgba(255, 0, 68, 0.6)',
+        hpBonus: 1.0,
+        dmgBonus: 0.4,
+        speedBonus: 0,
+        berserkThreshold: 0.3,
+        attackSpeedBonus: 1.0,
+        availableModes: ['endless'],
+        icon: '🔥',
+        desc: '血量低于30%时，攻击频率翻倍'
+    },
+    stealth: {
+        name: '隐形单位',
+        color: '#aaffff',
+        glowColor: 'rgba(170, 255, 255, 0.6)',
+        hpBonus: 0.3,
+        dmgBonus: 0.3,
+        speedBonus: 0.1,
+        stealthCycle: 300,
+        availableModes: ['endless'],
+        icon: '👻',
+        desc: '周期性隐形，攻击时现形'
+    }
+};
+
+const MUTATION_CONFIG = {
+    baseChance: {
+        normal: 0.10,
+        hard: 0.20,
+        endless: 0.30
+    },
+    waveBonus: 0.01,
+    maxWaveBonus: 0.15,
+    minWaveForBonus: 5,
+    variantWeights: {
+        normal: [
+            { variant: 'enhanced', weight: 50 },
+            { variant: 'speedy', weight: 50 }
+        ],
+        hard: [
+            { variant: 'enhanced', weight: 25 },
+            { variant: 'speedy', weight: 25 },
+            { variant: 'shielded', weight: 20 },
+            { variant: 'kamikaze', weight: 15 },
+            { variant: 'swarm', weight: 15 }
+        ],
+        endless: [
+            { variant: 'enhanced', weight: 15 },
+            { variant: 'speedy', weight: 15 },
+            { variant: 'shielded', weight: 15 },
+            { variant: 'kamikaze', weight: 15 },
+            { variant: 'swarm', weight: 10 },
+            { variant: 'toxic', weight: 10 },
+            { variant: 'berserk', weight: 10 },
+            { variant: 'stealth', weight: 10 }
+        ]
+    },
+    rewardMultiplier: {
+        enhanced: 1.5,
+        speedy: 1.3,
+        shielded: 2.0,
+        kamikaze: 1.8,
+        swarm: 2.0,
+        toxic: 2.5,
+        berserk: 2.5,
+        stealth: 3.0
+    }
+};
 
 class Enemy {
     constructor(type, wave, role='minion') {
@@ -3183,11 +4038,112 @@ class Enemy {
                 else if (type === 'pulsar') this.color = '#00ffaa'; else if (type === 'weaver') this.color = '#d500f9'; else this.color = '#ff00ff';
             }
         }
+        
+        this.variant = null;
+        this.variantData = null;
+        if (role === 'minion' && !this.isBoss) {
+            this.tryMutate();
+        }
+    }
+    
+    tryMutate() {
+        if (currentMode === 'easy') return;
+        
+        const baseChance = MUTATION_CONFIG.baseChance[currentMode] || 0;
+        const wave = this.role === 'minion' ? gameWave : 1;
+        let waveBonus = 0;
+        if (wave >= MUTATION_CONFIG.minWaveForBonus) {
+            waveBonus = Math.min(MUTATION_CONFIG.maxWaveBonus, (wave - MUTATION_CONFIG.minWaveForBonus + 1) * MUTATION_CONFIG.waveBonus);
+        }
+        const totalChance = baseChance + waveBonus;
+        
+        if (Math.random() > totalChance) return;
+        
+        const availableVariants = Object.keys(ENEMY_VARIANTS).filter(v => 
+            ENEMY_VARIANTS[v].availableModes.includes(currentMode)
+        );
+        
+        if (availableVariants.length === 0) return;
+        
+        const weights = MUTATION_CONFIG.variantWeights[currentMode] || MUTATION_CONFIG.variantWeights.normal;
+        const validWeights = weights.filter(w => availableVariants.includes(w.variant));
+        
+        let totalWeight = validWeights.reduce((sum, w) => sum + w.weight, 0);
+        let roll = Math.random() * totalWeight;
+        
+        let selectedVariant = validWeights[0].variant;
+        for (const w of validWeights) {
+            roll -= w.weight;
+            if (roll <= 0) {
+                selectedVariant = w.variant;
+                break;
+            }
+        }
+        
+        this.applyVariant(selectedVariant);
+    }
+    
+    applyVariant(variantId) {
+        const variant = ENEMY_VARIANTS[variantId];
+        if (!variant) return;
+        
+        this.variant = variantId;
+        this.variantData = variant;
+        
+        this.hp *= (1 + variant.hpBonus);
+        this.maxHp = this.hp;
+        this.vy *= (1 + variant.speedBonus);
+        
+        this.originalColor = this.color;
+        this.color = variant.color;
+        
+        if (variant.shieldHpBonus) {
+            this.shieldHp = this.maxHp * variant.shieldHpBonus;
+            this.hasShield = true;
+        }
+        
+        if (variant.stealthCycle) {
+            this.stealthTimer = 0;
+            this.isStealth = false;
+            this.stealthCycleTime = variant.stealthCycle;
+        }
+        
+        this.glowColor = variant.glowColor;
+        
+        if (this.role === 'minion') {
+            createExplosion(this.x, this.y, this.color, 15);
+            AudioSys.play('level_up');
+        }
+        
+        if (!saveData.discoveredVariants) saveData.discoveredVariants = [];
+        if (!saveData.discoveredVariants.includes(variantId)) {
+            saveData.discoveredVariants.push(variantId);
+            if (variantId !== 'enhanced' && variantId !== 'speedy') {
+                showPickupGuide && showPickupGuide('variant_' + variantId);
+            }
+        }
     }
     
     update(spd) { 
         const canMove = freezeTimer <= 0 || this.isBoss || this.role === 'elite'; 
         let slowFactor = 1.0; if (player && player.passives.speed) { slowFactor = Math.max(0.1, 1.0 - (player.passives.speed * 0.05)); }
+        
+        if (this.variant === 'stealth' && this.variantData) {
+            this.stealthTimer += spd;
+            const cyclePos = this.stealthTimer % (this.stealthCycleTime * 2);
+            if (cyclePos < this.stealthCycleTime * 0.6) {
+                this.isStealth = true;
+            } else {
+                this.isStealth = false;
+            }
+        }
+        
+        if (this.variant === 'berserk' && this.variantData) {
+            const hpPct = this.hp / this.maxHp;
+            if (hpPct <= this.variantData.berserkThreshold) {
+                this.isBerserk = true;
+            }
+        }
         
         if (this.modEffects.slow.active) {
             slowFactor *= (1 - this.modEffects.slow.slowPercent);
@@ -3255,7 +4211,7 @@ class Enemy {
                         this.attackAngle += 0.26;
                         for(let i=0; i<6; i++) {
                             let a = this.attackAngle + (i * Math.PI*2/6);
-                            activeProjectiles.push({type:'enemy_bullet', team:'enemy', x:this.x, y:this.y, vx:Math.cos(a)*4.0, vy:Math.sin(a)*4.0, dmg:18 * dmgScale, color:'#ff003d', life:260});
+                            activeProjectiles.push({type:'enemy_bullet', team:'enemy', x:this.x, y:this.y, vx:Math.cos(a)*3.2, vy:Math.sin(a)*3.2, dmg:18 * dmgScale, color:'#ff003d', life:260});
                         }
                     }
                     if (this.tick % 120 < 1) {
@@ -3595,32 +4551,105 @@ class Enemy {
         }
     }
     
-    takeDamage(d) {
+    takeDamage(d, isCrit = false) {
         if (this.marked) return; 
         if (!this.combatActive) {
             const entered = this.x >= 0 && this.x <= canvas.width && this.y >= 0 && this.y <= canvas.height;
             if (!entered) return;
             this.combatActive = true;
         }
-        this.hp-=d; showFloatText(this.x, this.y, Math.floor(d), '#fff');
+        this.hp-=d; 
+        const textColor = isCrit ? '#ff0055' : '#fff';
+        const textSize = isCrit ? Math.floor(d * 1.2) : Math.floor(d);
+        showFloatText(this.x, this.y, textSize, textColor);
         this.flashTimer = 3; AudioSys.play('hit');
+        
+        if (this.hasShield && this.shieldHp <= 0) {
+            this.hasShield = false;
+            showFloatText(this.x, this.y, "护盾破碎!", "#0088ff");
+            createExplosion(this.x, this.y, '#0088ff', 15);
+        }
+        
         if (this.hp <= 0 && activeBoss === this) { 
             activeBoss = null; document.getElementById('boss-hud').style.display = 'none'; 
         }
         if(this.hp<=0) {
-            this.marked=true; createExplosion(this.x,this.y,this.color,10); player.chargeBomb(1); runStats.kills++; AudioSys.play('explode');
+            this.marked=true; 
+            
+            if (this.variant === 'kamikaze' && this.variantData) {
+                const explodeDmg = this.variantData.explodeDamage * (1 + gameWave * 0.25);
+                const explodeRadius = this.variantData.explodeRadius;
+                createExplosion(this.x, this.y, '#ff0000', 30);
+                showFloatText(this.x, this.y, "爆炸!", "#ff0000");
+                
+                enemies.forEach(e => {
+                    const dx = e.x - this.x;
+                    const dy = e.y - this.y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < explodeRadius) {
+                        e.takeDamage(explodeDmg * (1 - dist / explodeRadius));
+                    }
+                });
+                
+                const pdx = player.x - this.x;
+                const pdy = player.y - this.y;
+                const pdist = Math.sqrt(pdx * pdx + pdy * pdy);
+                if (pdist < explodeRadius) {
+                    player.takeDamage(explodeDmg * (1 - pdist / explodeRadius) * 0.5);
+                }
+            }
+            
+            if (this.variant === 'swarm' && this.variantData) {
+                const spawnCount = this.variantData.spawnMinionsOnDeath || 3;
+                for(let i = 0; i < spawnCount; i++) {
+                    let m = new Enemy('micro_drone', gameWave);
+                    m.x = this.x + (Math.random() - 0.5) * 30;
+                    m.y = this.y + (Math.random() - 0.5) * 30;
+                    enemies.push(m);
+                }
+                createExplosion(this.x, this.y, '#8800ff', 20);
+                showFloatText(this.x, this.y, `召唤!`, "#8800ff");
+            }
+            
+            let goldBonus = 0;
+            if (this.variant && MUTATION_CONFIG.rewardMultiplier[this.variant]) {
+                goldBonus = Math.floor(10 * MUTATION_CONFIG.rewardMultiplier[this.variant]);
+                runStats.goldEarned += goldBonus;
+            }
+            
+            createExplosion(this.x,this.y,this.color,10); player.chargeBomb(1); runStats.kills++; if (this.isBoss) runStats.bossKills++; AudioSys.play('explode');
             if (this.type === 'tank') { for(let i=0; i<3; i++) { let m = new Enemy('micro_drone', gameWave); m.x = this.x + (Math.random() - 0.5) * 20;; m.y = this.y; enemies.push(m); } }
             if (this.isBoss) {
-                const bossXpValue = gameWave > 20 ? Math.round(2000 * (1 + Math.min(2.2, (gameWave - 20) * 0.06))) : 2000;
-                for(let i=0; i<15; i++) pickups.push({x:this.x + (Math.random()-0.5)*150, y:this.y + (Math.random()-0.5)*150, type:'xp', value:bossXpValue});
-                pickups.push({x:this.x-20, y:this.y, type:'heal'});
-                pickups.push({x:this.x+20, y:this.y, type:'gold', value:1000});
-                if (gameWave === 5) { pickups.push({x:this.x, y:this.y-30, type:'level_up_item', value:1}); }
-                if (gameWave === 10) { pickups.push({x:this.x-30, y:this.y-30, type:'level_up_item', value:1}); }
-                if (gameWave === 20) { for(let i=0; i<2; i++) pickups.push({x:this.x + (i-0.5)*60, y:this.y-30, type:'level_up_item', value:1}); }
-                if (gameWave === 30) { for(let i=0; i<3; i++) pickups.push({x:this.x + (i-1)*50, y:this.y-30, type:'level_up_item', value:1}); }
+                const modeConfig = MODES[currentMode];
+                const isVictory = currentMode !== 'endless' && gameWave >= modeConfig.maxWave;
+                
+                if (!isVictory) {
+                    const bossXpValue = gameWave > 20 ? Math.round(2000 * (1 + Math.min(2.2, (gameWave - 20) * 0.06))) : 2000;
+                    for(let i=0; i<15; i++) pickups.push({x:this.x + (Math.random()-0.5)*150, y:this.y + (Math.random()-0.5)*150, type:'xp', value:bossXpValue});
+                    pickups.push({x:this.x-20, y:this.y, type:'heal'});
+                    pickups.push({x:this.x+20, y:this.y, type:'gold', value:1000});
+                    if (gameWave === 5) { pickups.push({x:this.x, y:this.y-30, type:'level_up_item', value:1}); }
+                    if (gameWave === 10) { pickups.push({x:this.x-30, y:this.y-30, type:'level_up_item', value:1}); }
+                    if (gameWave === 20) { for(let i=0; i<2; i++) pickups.push({x:this.x + (i-0.5)*60, y:this.y-30, type:'level_up_item', value:1}); }
+                    if (gameWave === 30) { for(let i=0; i<3; i++) pickups.push({x:this.x + (i-1)*50, y:this.y-30, type:'level_up_item', value:1}); }
+                }
                 createBossDeathExplosion(this.x, this.y, this.type, this.color);
-                setTimeout(() => completeWave(), 1000); return;
+                const droppedEquipment = generateEquipmentDrop(this, gameWave, { firstKill: false, noHit: player.hp === player.maxHp });
+                pickups.push({
+                    x: this.x,
+                    y: this.y,
+                    type: 'equipment',
+                    equipment: droppedEquipment,
+                    color: droppedEquipment.rarity.color,
+                    glowColor: droppedEquipment.rarity.glowColor
+                });
+                if (isVictory) {
+                    victoryCountdown = 5;
+                    victoryCountdownStart = Date.now();
+                } else {
+                    setTimeout(() => completeWave(), 1000);
+                }
+                return;
             }
             let specialChance = 0.12; let goldChance = 0.2; let goldValue = 12;
             if (this.role === 'elite' || this.type === 'tank') { specialChance = 0.38; goldChance = 1.0; goldValue = 120; }
@@ -3704,6 +4733,37 @@ class Enemy {
         else ctx.rotate(Math.PI);
         
         drawEnemyModel(ctx, this.type, this.color, this.hp/this.maxHp); ctx.restore();
+        
+        if (this.variant && this.glowColor) {
+            ctx.save(); 
+            ctx.translate(this.x, this.y);
+            ctx.globalCompositeOperation = 'lighter';
+            ctx.globalAlpha = 0.3 + Math.sin(frameCount * 0.1) * 0.15;
+            ctx.fillStyle = this.glowColor;
+            
+            if (this.variant === 'shielded' && this.hasShield && this.shieldHp > 0) {
+                ctx.strokeStyle = '#0088ff';
+                ctx.lineWidth = 3;
+                ctx.globalAlpha = 0.4 + Math.sin(frameCount * 0.15) * 0.2;
+                ctx.beginPath(); 
+                ctx.arc(0, 0, 25 + Math.sin(frameCount * 0.1) * 3, 0, Math.PI * 2); 
+                ctx.stroke();
+            }
+            
+            if (this.variant === 'stealth') {
+                ctx.globalAlpha = this.isStealth ? 0.1 : 0.3 + Math.sin(frameCount * 0.1) * 0.15;
+            }
+            
+            if (this.variant === 'berserk' && this.isBerserk) {
+                ctx.globalAlpha = 0.4 + Math.sin(frameCount * 0.3) * 0.2;
+                ctx.fillStyle = 'rgba(255, 0, 68, 0.3)';
+            }
+            
+            ctx.beginPath(); 
+            ctx.arc(0, 0, 18 + Math.sin(frameCount * 0.1) * 2, 0, Math.PI * 2); 
+            ctx.fill();
+            ctx.restore();
+        }
         
         if (this.modEffects.burning.active) {
             ctx.save(); ctx.translate(this.x, this.y);
@@ -3979,61 +5039,6 @@ const guidePages = [
                     <p class="text-yellow-300 font-bold">专属技能「毁灭雷暴」：电弧满级时每6秒爆发全屏雷暴！</p>
                     <p class="text-cyan-300 text-xs">拥有所有机型的觉醒特技</p>
                 </div>
-            </div>
-        `
-    },
-    {
-        title: "战场掉落道具",
-        content: `
-            <div class="space-y-2 text-xs">
-                <p class="text-cyan-300 font-bold mb-2">击败敌人可获得以下掉落物：</p>
-                <div class="grid grid-cols-2 gap-2">
-                    <div class="bg-black/50 p-2 rounded border border-green-900/50">
-                        <p class="text-green-400 font-bold">🟢 经验值</p>
-                        <p class="text-gray-400">核心资源，提升等级</p>
-                        <p class="text-yellow-300 text-xs">优先拾取！</p>
-                    </div>
-                    <div class="bg-black/50 p-2 rounded border border-yellow-900/50">
-                        <p class="text-yellow-400 font-bold">💰 金币</p>
-                        <p class="text-gray-400">货币，购买升级</p>
-                        <p class="text-gray-500 text-xs">精英掉落更多</p>
-                    </div>
-                    <div class="bg-black/50 p-2 rounded border border-red-900/50">
-                        <p class="text-red-400 font-bold">➕ 生命恢复</p>
-                        <p class="text-gray-400">恢复10%HP+10</p>
-                        <p class="text-red-300 text-xs">紧急时拾取！</p>
-                    </div>
-                    <div class="bg-black/50 p-2 rounded border border-cyan-900/50">
-                        <p class="text-cyan-400 font-bold">🧲 磁力场</p>
-                        <p class="text-gray-400">吸引所有掉落物</p>
-                        <p class="text-gray-500 text-xs">快速收集</p>
-                    </div>
-                    <div class="bg-black/50 p-2 rounded border border-blue-900/50">
-                        <p class="text-blue-400 font-bold">❄️ 时间冻结</p>
-                        <p class="text-gray-400">冻结所有敌人</p>
-                        <p class="text-gray-500 text-xs">稀有掉落</p>
-                    </div>
-                    <div class="bg-black/50 p-2 rounded border border-yellow-700/50">
-                        <p class="text-yellow-200 font-bold">⭐ 无敌星</p>
-                        <p class="text-gray-400">短暂无敌保护</p>
-                        <p class="text-gray-500 text-xs">极稀有</p>
-                    </div>
-                    <div class="bg-black/50 p-2 rounded border border-orange-900/50">
-                        <p class="text-orange-400 font-bold">⚡ 攻击强化</p>
-                        <p class="text-gray-400">攻击力+50%</p>
-                        <p class="text-gray-500 text-xs">极稀有</p>
-                    </div>
-                    <div class="bg-black/50 p-2 rounded border border-purple-900/50">
-                        <p class="text-purple-400 font-bold">🔮 能量核心</p>
-                        <p class="text-gray-400">充满大招能量</p>
-                        <p class="text-gray-500 text-xs">极稀有</p>
-                    </div>
-                </div>
-                <div class="bg-black/50 p-2 rounded border border-yellow-500/50 mt-2">
-                    <p class="text-yellow-400 font-bold text-center">⬆️ 升级模块</p>
-                    <p class="text-gray-300 text-center">直接触发升级选择！BOSS击杀必掉</p>
-                </div>
-                <p class="text-gray-500 text-xs mt-2">💡 提示：靠近掉落物自动吸收，磁力场可扩大范围</p>
             </div>
         `
     },
@@ -4786,17 +5791,15 @@ function gameLoop() {
     if (!isWaveBossActive && waveTimer >= 45) { spawnWaveBoss(); }
 
     player.update(spd);
-    const instantCullProjectileTypes = new Set(['basic', 'wingman_bullet', 'fleet_laser', 'missile', 'doom_missile', 'giant_missile', 'rang', 'enemy_bullet', 'enemy_missile', 'enemy_accel_bullet']);
     const isOutOfScreen = (p) => p.x < 0 || p.x > canvas.width || p.y < 0 || p.y > canvas.height;
-    const shouldInstantCullProjectile = (p) => instantCullProjectileTypes.has(p.type) && isOutOfScreen(p);
-    const canLockEnemyTarget = (e) => !!e && !e.marked && e.combatActive && e.x >= 0 && e.x <= canvas.width && e.y >= 0 && e.y <= canvas.height;
+    const shouldInstantCullProjectile = (p) => INSTANT_CULL_PROJECTILE_TYPES.has(p.type) && isOutOfScreen(p);
     const enemyBulletSlowFactor = player && player.passives.speed ? Math.max(0.1, 1.0 - (player.passives.speed * 0.05)) : 1.0;
     
     activeProjectiles.forEach(p => {
         if (shouldInstantCullProjectile(p)) {
             p.marked = true; return;
         }
-        if (p.type !== 'enemy_laser' && p.type !== 'blackhole' && p.type !== 'ally_support_laser' && !instantCullProjectileTypes.has(p.type) && (p.x < -200 || p.x > canvas.width + 200 || p.y < -200 || p.y > canvas.height + 200)) {
+        if (p.type !== 'enemy_laser' && p.type !== 'blackhole' && p.type !== 'ally_support_laser' && !INSTANT_CULL_PROJECTILE_TYPES.has(p.type) && (p.x < -200 || p.x > canvas.width + 200 || p.y < -200 || p.y > canvas.height + 200)) {
             p.marked = true; return; 
         }
 
@@ -4925,7 +5928,10 @@ function gameLoop() {
                     if(dx*dx + dy*dy < hitRadius){
                         let modDmg = applyWeaponModDamage(e, p.dmg, 'multishot');
                         if ((player.shipType === 'shadow' || player.shipType === 'deity') && e.role === 'minion' && Math.random() < 0.02) { e.takeDamage(99999); showFloatText(e.x, e.y, "斩杀!", "#d500f9"); } 
-                        else { e.takeDamage(modDmg); } 
+                        else { 
+                            const crit = applyCritToDamage(modDmg, e.x, e.y);
+                            e.takeDamage(crit.dmg, crit.isCrit); 
+                        } 
                         createExplosion(p.x, p.y, '#ffffff', 4);
                         hit=true; break; 
                     } 
@@ -5317,7 +6323,14 @@ function gameLoop() {
         if(distSq < 400) {
             const pickupType = p.type;
             if (p.type === 'xp') { player.gainXp(p.value || 10); AudioSys.play('ui_click'); } 
-            else if (p.type === 'gold') { player.gold += p.value; runStats.goldEarned += p.value; showFloatText(player.x, player.y, `+${Math.round(p.value)} 金币`, "#ffea00"); AudioSys.play('ui_click'); } 
+            else if (p.type === 'gold') { 
+                const goldBonus = player.goldBonus || 1;
+                const finalGold = Math.round(p.value * goldBonus);
+                player.gold += finalGold; 
+                runStats.goldEarned += finalGold; 
+                showFloatText(player.x, player.y, `+${finalGold} 金币`, "#ffea00"); 
+                AudioSys.play('ui_click'); 
+            } 
             else if (p.type === 'heal') { const healAmount = player.maxHp * 0.1 + 10; const prevHp = player.hp; player.hp = Math.min(player.maxHp, player.hp + healAmount); showFloatText(player.x, player.y, `+${Math.ceil(player.hp - prevHp)} HP`, "#00ffaa"); AudioSys.play('level_up'); } 
             else if (p.type === 'magnet') { pickups.forEach(o => o.magnetized = true); showFloatText(player.x, player.y, "MAGNET", "#fff"); AudioSys.play('level_up'); } 
             else if (p.type === 'freeze') { freezeTimer = 180; showFloatText(player.x, player.y, "FREEZE!", "#00e5ff"); createExplosion(canvas.width/2, canvas.height/2, '#00e5ff', 20); AudioSys.play('shield_break'); }
@@ -5354,6 +6367,26 @@ function gameLoop() {
                 createExplosion(player.x, player.y, '#ffea00', 20);
                 AudioSys.play('level_up');
                 updateHUD();
+            }
+            else if (p.type === 'equipment') {
+                const eq = p.equipment;
+                const addResult = inventory.addItem(eq);
+                if (addResult.success) {
+                    runStats.equipmentCount++;
+                    switch (eq.rarity.id) {
+                        case 1: runStats.rareEquipmentCount++;
+                            break;
+                        case 2: runStats.epicEquipmentCount++;
+                            break;
+                        case 3: runStats.legendaryEquipmentCount++;
+                            break;
+                    }
+                    showEquipmentDropNotification(eq);
+                    saveGame();
+                    AudioSys.play('level_up');
+                } else {
+                    showFloatText(player.x, player.y, '背包已满!', '#ff4444');
+                }
             }
             p.marked=true;
             if (PICKUP_INFO[pickupType] && !saveData.collectedPickupTypes[pickupType]) {
@@ -5519,14 +6552,12 @@ function gameLoop() {
                 ctx.closePath(); ctx.fill(); ctx.restore();
             } else if (p.type === 'attack_up') {
                 ctx.shadowColor = '#ff6a00'; ctx.fillStyle = '#ff6a00';
-                ctx.beginPath(); ctx.moveTo(p.x, p.y - 11); ctx.lineTo(p.x - 8, p.y + 2); ctx.lineTo(p.x - 2, p.y + 2); ctx.lineTo(p.x - 2, p.y + 11);
-                ctx.lineTo(p.x + 8, p.y - 3); ctx.lineTo(p.x + 2, p.y -3); ctx.lineTo(p.x + 2, p.y -11); ctx.closePath(); ctx.fill();
+                ctx.font = '20px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText('💪', p.x, p.y);
             } else if (p.type === 'energy') {
-                ctx.shadowColor = '#d500f9'; ctx.fillStyle = '#d500f9'; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2;
-                ctx.beginPath(); ctx.arc(p.x, p.y, 10, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
-                ctx.fillStyle = '#ffffff'; ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, Math.PI * 2); ctx.fill();
-                ctx.strokeStyle = '#d500f9'; ctx.lineWidth = 1;
-                for(let i = 0; i < 4; i++) { ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(p.x + Math.cos(i * Math.PI / 2 + frameCount * 0.05) * 14, p.y + Math.sin(i * Math.PI / 2 + frameCount * 0.05) * 14); ctx.stroke(); }
+                ctx.shadowColor = '#d500f9'; ctx.fillStyle = '#d500f9';
+                ctx.font = '20px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText('⚡', p.x, p.y);
             } else if (p.type === 'level_up_item') {
                 ctx.shadowColor = '#ffea00'; ctx.fillStyle = '#ffea00'; ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2;
                 ctx.beginPath(); ctx.arc(p.x, p.y, 12, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
@@ -5538,6 +6569,19 @@ function gameLoop() {
                     ctx.beginPath(); ctx.moveTo(p.x + Math.cos(angle) * 14, p.y + Math.sin(angle) * 14); 
                     ctx.lineTo(p.x + Math.cos(angle) * 18, p.y + Math.sin(angle) * 18); ctx.stroke(); 
                 }
+            } else if (p.type === 'equipment') {
+                const eq = p.equipment;
+                ctx.shadowColor = p.glowColor || '#ffffff';
+                ctx.shadowBlur = 15;
+                ctx.fillStyle = p.color || '#ffffff';
+                ctx.beginPath(); ctx.arc(p.x, p.y, 14, 0, Math.PI * 2); ctx.fill();
+                ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2; ctx.stroke();
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '16px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('⚙', p.x, p.y);
+                ctx.shadowBlur = 0;
             }
         }
         ctx.shadowBlur = 0; ctx.globalCompositeOperation = 'source-over';
@@ -6244,8 +7288,108 @@ function gameLoop() {
     const bombRatioFx = player.bombCharge / player.bombMax;
     updateHudBarFX(hpRatioFx, shieldRatioFx, shieldChargingFx, bombRatioFx);
     updateHUD();
+    
+    if (victoryCountdown > 0) {
+        const elapsed = (Date.now() - victoryCountdownStart) / 1000;
+        const remaining = Math.max(0, Math.ceil(5 - elapsed));
+        
+        if (remaining <= 0) {
+            victoryCountdown = 0;
+            completeWave();
+        } else {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
+            ctx.fillRect(canvas.width/2 - 150, canvas.height/2 - 40, 300, 80);
+            
+            ctx.fillStyle = '#ffd700';
+            ctx.font = 'bold 24px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('胜利！正在结算...', canvas.width/2, canvas.height/2 - 15);
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 32px sans-serif';
+            ctx.fillText(`${remaining}`, canvas.width/2, canvas.height/2 + 20);
+        }
+    }
+    
     drawScreenEffects(ctx);
     gameLoopId = requestAnimationFrame(gameLoop);
+}
+
+let equipmentDropQueue = [];
+let showingEquipmentDrop = false;
+
+function showEquipmentDropNotification(equipment) {
+    equipmentDropQueue.push(equipment);
+    if (!showingEquipmentDrop) {
+        displayNextEquipmentDrop();
+    }
+}
+
+function displayNextEquipmentDrop() {
+    if (equipmentDropQueue.length === 0) {
+        showingEquipmentDrop = false;
+        return;
+    }
+    showingEquipmentDrop = true;
+    const equipment = equipmentDropQueue.shift();
+    
+    const overlay = document.createElement('div');
+    overlay.id = 'equipment-drop-overlay';
+    overlay.style.cssText = `
+        position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center;
+        z-index: 10000; animation: fadeIn 0.3s ease;
+    `;
+    
+    const content = document.createElement('div');
+    content.style.cssText = `
+        background: linear-gradient(145deg, #1a1a2e, #0f0f1a);
+        border: 2px solid ${equipment.rarity.color};
+        border-radius: 16px; padding: 30px; text-align: center;
+        box-shadow: 0 0 30px ${equipment.rarity.glowColor}40, inset 0 0 20px rgba(0,0,0,0.5);
+        animation: scaleIn 0.3s ease;
+    `;
+    
+    content.innerHTML = `
+        <div style="font-size: 14px; color: #888; margin-bottom: 10px;">获得装备</div>
+        <div style="font-size: 48px; margin: 15px 0; filter: drop-shadow(0 0 15px ${equipment.rarity.glowColor});">
+            ${equipment.icon}
+        </div>
+        <div style="font-size: 20px; font-weight: bold; color: ${equipment.rarity.color}; text-shadow: 0 0 10px ${equipment.rarity.glowColor}; margin-bottom: 8px;">
+            ${equipment.rarity.nameCN} ${EQUIPMENT_SLOT[equipment.slot].name}
+        </div>
+        <div style="font-size: 16px; color: #fff; margin-bottom: 15px;">${equipment.name}</div>
+        <div style="font-size: 13px; color: #aaa; margin-bottom: 20px;">
+            ${Object.entries(equipment.stats).map(([stat, value]) => 
+                `<span style="margin: 0 8px;">${EQUIPMENT_STATS[stat].icon} ${EQUIPMENT_STATS[stat].format(value)}</span>`
+            ).join('')}
+        </div>
+        ${equipment.effects.length > 0 ? `
+            <div style="font-size: 12px; color: #b388ff; margin-bottom: 20px;">
+                ✦ ${equipment.effects.length}个特殊效果
+            </div>
+        ` : ''}
+        <button id="equipment-drop-confirm" style="
+            background: linear-gradient(145deg, #00bcd4, #0097a7);
+            border: none; color: white; padding: 12px 40px; font-size: 16px;
+            border-radius: 8px; cursor: pointer; transition: all 0.2s;
+        ">确定</button>
+    `;
+    
+    overlay.appendChild(content);
+    document.body.appendChild(overlay);
+    
+    AudioSys.play('level_up');
+    
+    const confirmBtn = document.getElementById('equipment-drop-confirm');
+    confirmBtn.onclick = () => {
+        overlay.style.animation = 'fadeOut 0.2s ease';
+        setTimeout(() => {
+            overlay.remove();
+            setTimeout(displayNextEquipmentDrop, 100);
+        }, 200);
+    };
 }
 
 function showFloatText(x, y, text, color) { 
@@ -6707,13 +7851,13 @@ function renderLevelUpOptions() {
             let currentLvl = player.weapons[o.id]?.level || 0; 
             d.className += ' !border-orange-500 shadow-[0_0_20px_rgba(255,165,0,0.3)]'; 
             d.innerHTML=`<div class="flex flex-col items-center"><div class="text-xs text-orange-400 font-bold mb-1" style="text-shadow:0 0 5px #ff6a00">⚔️ 武器 ⚔️</div><div class="text-4xl mb-2 filter drop-shadow-[0_0_15px_rgba(255,165,0,0.8)]">${ICONS[iconKey] || '❓'}</div><h3 class="text-orange-300 text-lg mb-1 font-bold" style="text-shadow:0 0 10px #ff6a00">${t(WEAPONS[o.id]?.nameKey || o.nameKey)}</h3><div class="text-xs text-yellow-400 font-bold mb-2 tracking-wider">${currentLvl === 0 ? "新获得" : `Lv.${currentLvl} -> Lv.${currentLvl+1}`}</div><p class="text-gray-400 text-xs leading-tight text-center px-2 h-8 overflow-hidden">${t(o.descKey || WEAPONS[o.id]?.descKey)}</p></div>`; 
-            d.onclick=()=>{ if(!player.weapons[o.id]) player.weapons[o.id]={level:1,cd:0,evo:false}; else player.weapons[o.id].level++; AudioSys.play('ui_click'); document.getElementById('levelup-screen').classList.remove('active'); gameState='playing'; lastFrameTs = performance.now(); gameLoop(); }; 
+            d.onclick=()=>{ if(!player.weapons[o.id]) player.weapons[o.id]={level:1,cd:0,evo:false}; else player.weapons[o.id].level++; runStats.upgradeCount++; AudioSys.play('ui_click'); document.getElementById('levelup-screen').classList.remove('active'); gameState='playing'; lastFrameTs = performance.now(); gameLoop(); }; 
         }
         else { 
             let currentLvl = player.passives[o.id] || 0; 
             d.className += ' !border-green-500 shadow-[0_0_20px_rgba(0,255,136,0.3)]'; 
             d.innerHTML=`<div class="flex flex-col items-center"><div class="text-xs text-green-400 font-bold mb-1" style="text-shadow:0 0 5px #00ff88">💎 芯片 💎</div><div class="text-4xl mb-2 filter drop-shadow-[0_0_15px_rgba(0,255,136,0.8)]">${ICONS[iconKey] || '❓'}</div><h3 class="text-green-300 text-lg mb-1 font-bold" style="text-shadow:0 0 10px #00ff88">${t(o.nameKey)}</h3><div class="text-xs text-yellow-400 font-bold mb-2 tracking-wider">${currentLvl === 0 ? "新获得" : `Lv.${currentLvl} -> Lv.${currentLvl+1}`}</div><p class="text-gray-400 text-xs leading-tight text-center px-2 h-8 overflow-hidden">${t(o.descKey)}</p></div>`; 
-            d.onclick=()=>{ player.passives[o.id]=(player.passives[o.id]||0)+1; AudioSys.play('ui_click'); document.getElementById('levelup-screen').classList.remove('active'); gameState='playing'; lastFrameTs = performance.now(); gameLoop(); }; 
+            d.onclick=()=>{ player.passives[o.id]=(player.passives[o.id]||0)+1; runStats.upgradeCount++; AudioSys.play('ui_click'); document.getElementById('levelup-screen').classList.remove('active'); gameState='playing'; lastFrameTs = performance.now(); gameLoop(); }; 
         }
         c.appendChild(d);
     });
@@ -6746,7 +7890,7 @@ function endGame(win) {
     saveData.currentRun = null; 
     let earnings = player.gold; 
     let displayWave = win && currentMode !== 'endless' ? MODES[currentMode].maxWave : gameWave - 1; 
-    const context = { win, mode: currentMode, wave: displayWave, kills: runStats.kills, goldEarned: runStats.goldEarned, hit: runStats.hit, hpPct: player.hp / player.maxHp }; 
+    const context = { win, mode: currentMode, wave: displayWave, kills: runStats.kills, bossKills: runStats.bossKills, goldEarned: runStats.goldEarned, hit: runStats.hit, hpPct: player.hp / player.maxHp, equipmentCount: runStats.equipmentCount, rareEquipmentCount: runStats.rareEquipmentCount, epicEquipmentCount: runStats.epicEquipmentCount, legendaryEquipmentCount: runStats.legendaryEquipmentCount, upgradeCount: runStats.upgradeCount }; 
     let newUnlocks = []; 
     let unlockedThisRun = [];
     ACHIEVEMENTS.forEach(ach => {
@@ -6755,6 +7899,45 @@ function endGame(win) {
             unlockedThisRun.push(ach.id);
             saveData.gold += ach.reward;
             earnings += ach.reward;
+            
+            // 更新成就统计数据
+            const now = new Date().toISOString();
+            saveData.achievementStats.totalUnlocked++;
+            saveData.achievementStats.unlockedAchievements[ach.id] = {
+                unlockedAt: now,
+                wave: context.wave,
+                mode: context.mode
+            };
+            
+            // 更新分类统计
+            if (!saveData.achievementStats.categoryStats[ach.category]) {
+                saveData.achievementStats.categoryStats[ach.category] = {
+                    unlocked: 0,
+                    total: ACHIEVEMENTS.filter(a => a.category === ach.category).length
+                };
+            }
+            saveData.achievementStats.categoryStats[ach.category].unlocked++;
+            
+            // 更新连续解锁 streak
+            const lastUnlockDate = saveData.achievementStats.lastUnlockDate;
+            if (lastUnlockDate) {
+                const lastDate = new Date(lastUnlockDate);
+                const currentDate = new Date(now);
+                const diffTime = Math.abs(currentDate - lastDate);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                if (diffDays === 1) {
+                    saveData.achievementStats.streak++;
+                } else if (diffDays > 1) {
+                    saveData.achievementStats.streak = 1;
+                }
+            } else {
+                saveData.achievementStats.streak = 1;
+            }
+            
+            saveData.achievementStats.lastUnlockDate = now;
+            saveData.achievementStats.totalGoldEarned += ach.reward;
+            
             newUnlocks.push(`<span class="text-yellow-400" style="text-shadow:0 0 5px #ffea00">🏆 成就解锁：${ach.title} (+${ach.reward})</span>`);
         }
     });
@@ -7697,7 +8880,776 @@ function equipUltMod(ultKey) {
     showFloatText(canvas?.width/2 || 400, canvas?.height/2 || 300, `装备了 ${t(conf?.nameKey || ultKey)}`, conf?.color || '#00ffff');
 }
 
-function showAchievements() { document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('ach-screen').classList.add('active'); const list = document.getElementById('ach-list'); list.innerHTML = ''; ACHIEVEMENTS.forEach(ach => { let isUnlocked = saveData.achievements.includes(ach.id); let div = document.createElement('div'); div.className = `ach-item ${isUnlocked ? 'unlocked' : ''}`; div.innerHTML = `<div class="ach-icon">${isUnlocked ? '🏆' : '🔒'}</div><div><div class="font-bold ${isUnlocked ? 'text-yellow-400' : 'text-gray-500'}">${ach.title}</div><div class="ach-desc">${ach.desc}</div></div><div class="ach-reward">+${ach.reward}</div>`; list.appendChild(div); }); }
+function showAchievements() {
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    document.getElementById('ach-screen').classList.add('active');
+    
+    const categories = {
+        battle: { name: '战斗大师', icon: '⚔️' },
+        survive: { name: '生存专家', icon: '🛡️' },
+        wealth: { name: '财富积累', icon: '💰' },
+        equipment: { name: '装备大师', icon: '📦' },
+        challenge: { name: '技术挑战', icon: '🏆' }
+    };
+    
+    const list = document.getElementById('ach-list');
+    list.innerHTML = '';
+    
+    // 添加分类标签页
+    const tabContainer = document.createElement('div');
+    tabContainer.className = 'flex flex-wrap gap-2 mb-4 justify-center';
+    
+    Object.entries(categories).forEach(([categoryId, category]) => {
+        const tab = document.createElement('button');
+        tab.className = 'px-4 py-2 rounded-full text-sm font-bold transition-all';
+        tab.innerHTML = `${category.icon} ${category.name}`;
+        
+        const categoryAchievements = ACHIEVEMENTS.filter(ach => ach.category === categoryId);
+        const unlockedCount = categoryAchievements.filter(ach => saveData.achievements.includes(ach.id)).length;
+        const totalCount = categoryAchievements.length;
+        const progress = Math.round((unlockedCount / totalCount) * 100);
+        
+        tab.style.backgroundColor = `rgba(0, 229, 255, ${0.1 + progress/100 * 0.3})`;
+        tab.style.border = `2px solid rgba(0, 229, 255, ${0.3 + progress/100 * 0.7})`;
+        tab.style.color = `rgba(0, 229, 255, ${0.8 + progress/100 * 0.2})`;
+        
+        tab.onclick = () => {
+            renderAchievementsByCategory(categoryId);
+        };
+        
+        tabContainer.appendChild(tab);
+    });
+    
+    list.appendChild(tabContainer);
+    
+    // 显示总成就统计
+    const totalAchievements = ACHIEVEMENTS.length;
+    const totalUnlocked = ACHIEVEMENTS.filter(ach => saveData.achievements.includes(ach.id)).length;
+    const totalProgress = Math.round((totalUnlocked / totalAchievements) * 100);
+    
+    const statsContainer = document.createElement('div');
+    statsContainer.className = 'bg-black/60 border border-yellow-900/30 p-4 rounded mb-4';
+    
+    // 构建统计信息
+    let statsHTML = `
+        <div class="flex justify-between items-center mb-2">
+            <span class="text-white font-bold">总成就完成率</span>
+            <span class="text-yellow-400 font-bold">${totalUnlocked}/${totalAchievements} (${totalProgress}%)</span>
+        </div>
+        <div class="w-full h-2 bg-gray-800 rounded-full overflow-hidden mb-4">
+            <div class="h-full bg-yellow-400 rounded-full" style="width: ${totalProgress}%"></div>
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+            <div class="bg-black/40 p-3 rounded">
+                <div class="text-xs text-gray-400">连续解锁天数</div>
+                <div class="text-xl text-yellow-400 font-bold">${saveData.achievementStats.streak || 0}</div>
+            </div>
+            <div class="bg-black/40 p-3 rounded">
+                <div class="text-xs text-gray-400">成就奖励金币</div>
+                <div class="text-xl text-yellow-400 font-bold">${saveData.achievementStats.totalGoldEarned || 0}</div>
+            </div>
+        </div>
+    `;
+    
+    // 添加分类统计
+    statsHTML += `
+        <div class="mt-4">
+            <div class="text-sm font-bold text-white mb-2">分类完成情况</div>
+            <div class="space-y-2">
+    `;
+    
+    Object.entries(categories).forEach(([categoryId, category]) => {
+        const categoryAchievements = ACHIEVEMENTS.filter(ach => ach.category === categoryId);
+        const categoryUnlocked = categoryAchievements.filter(ach => saveData.achievements.includes(ach.id)).length;
+        const categoryTotal = categoryAchievements.length;
+        const categoryProgress = Math.round((categoryUnlocked / categoryTotal) * 100);
+        
+        statsHTML += `
+            <div>
+                <div class="flex justify-between text-xs mb-1">
+                    <span class="text-gray-300">${category.icon} ${category.name}</span>
+                    <span class="text-yellow-400">${categoryUnlocked}/${categoryTotal} (${categoryProgress}%)</span>
+                </div>
+                <div class="w-full h-1.5 bg-gray-800 rounded-full overflow-hidden">
+                    <div class="h-full bg-cyan-400 rounded-full" style="width: ${categoryProgress}%"></div>
+                </div>
+            </div>
+        `;
+    });
+    
+    statsHTML += `
+            </div>
+        </div>
+    `;
+    
+    statsContainer.innerHTML = statsHTML;
+    list.appendChild(statsContainer);
+    
+    // 默认显示所有成就
+    renderAchievementsByCategory('all');
+    
+    function renderAchievementsByCategory(categoryId) {
+        const achievementsToShow = categoryId === 'all' ? ACHIEVEMENTS : ACHIEVEMENTS.filter(ach => ach.category === categoryId);
+        
+        const achievementsContainer = document.createElement('div');
+        achievementsContainer.className = 'space-y-3';
+        
+        achievementsToShow.forEach(ach => {
+            const isUnlocked = saveData.achievements.includes(ach.id);
+            const div = document.createElement('div');
+            div.className = `ach-item ${isUnlocked ? 'unlocked' : ''}`;
+            div.innerHTML = `
+                <div class="ach-icon">${isUnlocked ? '🏆' : '🔒'}</div>
+                <div>
+                    <div class="font-bold ${isUnlocked ? 'text-yellow-400' : 'text-gray-500'}">${ach.icon} ${ach.title}</div>
+                    <div class="ach-desc">${ach.desc}</div>
+                </div>
+                <div class="ach-reward">+${ach.reward}</div>
+            `;
+            achievementsContainer.appendChild(div);
+        });
+        
+        // 清除现有成就列表（保留标签页和统计）
+        while (list.children.length > 2) {
+            list.removeChild(list.lastChild);
+        }
+        
+        list.appendChild(achievementsContainer);
+    }
+}
+
+let selectedEquipmentSlot = null;
+let selectedEquipmentItem = null;
+
+function showEquipmentScreen() {
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    document.getElementById('equipment-screen').classList.add('active');
+    renderEquipmentScreen();
+    
+    if (!saveData.hasSeenEquipmentGuide) {
+        showEquipmentGuide();
+    }
+}
+
+function showEquipmentGuide() {
+    document.getElementById('equipment-guide').style.display = 'flex';
+    AudioSys.play('ui_click');
+}
+
+function closeEquipmentGuide() {
+    document.getElementById('equipment-guide').style.display = 'none';
+    saveData.hasSeenEquipmentGuide = true;
+    saveGame();
+    AudioSys.play('ui_click');
+}
+
+function renderEquipmentScreen() {
+    renderEquippedSlots();
+    renderEquipmentGrid();
+    renderTotalStats();
+    updateInventoryCount();
+}
+
+function renderEquippedSlots() {
+    const container = document.getElementById('equipped-slots');
+    if (!container) return;
+    container.innerHTML = '';
+    
+    for (const [slotId, slotConfig] of Object.entries(EQUIPMENT_SLOT)) {
+        const equipped = saveData.equippedItems ? saveData.equippedItems[slotId] : null;
+        const div = document.createElement('div');
+        div.className = `p-2 rounded cursor-pointer transition-all border ${equipped ? 'border-cyan-500 bg-cyan-900/20' : 'border-gray-700 bg-gray-900/50'} hover:border-cyan-400`;
+        div.onclick = () => selectEquipmentSlot(slotId);
+        
+        div.innerHTML = `
+            <div class="flex items-center gap-2">
+                <span class="text-lg">${slotConfig.icon}</span>
+                <div class="flex-1 min-w-0">
+                    <div class="text-xs text-gray-400">${slotConfig.name}</div>
+                    ${equipped ? `
+                        <div class="text-xs text-white truncate">${equipped.name}</div>
+                        <div class="text-xs" style="color: ${equipped.rarity.color}">${equipped.rarity.nameCN}</div>
+                    ` : `<div class="text-xs text-gray-600">空</div>`}
+                </div>
+            </div>
+        `;
+        container.appendChild(div);
+    }
+}
+
+function renderEquipmentGrid() {
+    const container = document.getElementById('equipment-grid');
+    if (!container) return;
+    container.innerHTML = '';
+    
+    const items = inventory.filter();
+    
+    if (items.length === 0) {
+        container.innerHTML = '<div class="col-span-4 text-center text-gray-500 py-8">暂无装备，击败BOSS获取装备</div>';
+        return;
+    }
+    
+    items.forEach(eq => {
+        const div = document.createElement('div');
+        const isEquipped = Object.values(saveData.equippedItems || {}).some(e => e?.id === eq.id);
+        div.className = `p-2 rounded cursor-pointer transition-all border ${getRarityBorderClass(eq.rarity.id)} ${isEquipped ? 'ring-2 ring-cyan-400' : ''} hover:scale-105`;
+        div.onclick = () => showEquipmentDetail(eq.id);
+        
+        const power = calculateEquipmentPower(eq);
+        
+        div.innerHTML = `
+            <div class="flex items-center gap-1 mb-1">
+                <span class="text-xl">${eq.icon}</span>
+                <div class="flex-1 min-w-0">
+                    <div class="text-xs font-bold truncate" style="color: ${eq.rarity.color}">${eq.rarity.nameCN}</div>
+                    ${isEquipped ? `
+                        <div class="text-xs text-cyan-400 font-bold">已装备</div>
+                    ` : ''}
+                </div>
+            </div>
+            <div class="text-xs text-white truncate mb-1">${eq.name}</div>
+            <div class="space-y-0.5 text-xs">
+                ${Object.entries(eq.stats).slice(0, 2).map(([stat, value]) => `
+                    <div class="flex justify-between text-gray-400">
+                        <span>${EQUIPMENT_STATS[stat].icon}</span>
+                        <span class="text-cyan-300">${EQUIPMENT_STATS[stat].format(value)}</span>
+                    </div>
+                `).join('')}
+            </div>
+            ${eq.effects && eq.effects.length > 0 ? `
+                <div class="mt-1 pt-1 border-t border-gray-800">
+                    <span class="text-xs text-purple-400">✦${eq.effects.length}</span>
+                </div>
+            ` : ''}
+            <div class="text-right text-xs text-yellow-400 mt-1">⚡${power}</div>
+        `;
+        container.appendChild(div);
+    });
+}
+
+function getRarityBorderClass(rarityId) {
+    const classes = {
+        0: 'border-gray-600 bg-gray-900/50',
+        1: 'border-green-500 bg-green-900/20',
+        2: 'border-red-500 bg-red-900/20',
+        3: 'border-yellow-400 bg-yellow-900/20'
+    };
+    return classes[rarityId] || classes[0];
+}
+
+function calculateEquipmentPower(eq) {
+    let power = 0;
+    for (const [stat, value] of Object.entries(eq.stats || {})) {
+        power += value * (STAT_WEIGHTS[stat] || 1);
+    }
+    power += (eq.effects || []).length * 20;
+    power *= (1 + eq.rarity.id * 0.25);
+    return Math.floor(power);
+}
+
+function renderTotalStats() {
+    const container = document.getElementById('total-stats');
+    if (!container) return;
+    
+    const stats = saveData.equipmentStats || {};
+    const totalPower = saveData.totalEquipmentPower || 0;
+    
+    document.getElementById('total-power').textContent = totalPower;
+    
+    let html = '';
+    for (const [stat, config] of Object.entries(EQUIPMENT_STATS)) {
+        const value = stats[stat] || 0;
+        if (value > 0) {
+            html += `<div class="flex justify-between"><span class="text-gray-400">${config.icon} ${config.name}</span><span class="text-cyan-300">${config.format(value)}</span></div>`;
+        }
+    }
+    container.innerHTML = html || '<div class="text-gray-500 text-center">无装备加成</div>';
+}
+
+function updateInventoryCount() {
+    const countEl = document.getElementById('inventory-count');
+    if (countEl) {
+        countEl.textContent = (saveData.equipmentInventory || []).length;
+    }
+}
+
+function filterEquipment() {
+    const select = document.getElementById('equip-filter-select');
+    inventory.filterMode = select.value;
+    renderEquipmentGrid();
+}
+
+function sortEquipment() {
+    const select = document.getElementById('equip-sort-select');
+    inventory.sortMode = select.value;
+    inventory.sort();
+    renderEquipmentGrid();
+}
+
+function selectEquipmentSlot(slotId) {
+    selectedEquipmentSlot = slotId;
+    inventory.filterMode = slotId;
+    document.getElementById('equip-filter-select').value = slotId;
+    renderEquipmentGrid();
+}
+
+function showEquipmentDetail(equipmentId) {
+    const allItems = [...(saveData.equipmentInventory || [])];
+    for (const slot of Object.keys(saveData.equippedItems || {})) {
+        const eq = saveData.equippedItems[slot];
+        if (eq) allItems.push(eq);
+    }
+    
+    const equipment = allItems.find(e => e.id === equipmentId);
+    if (!equipment) return;
+    
+    selectedEquipmentItem = equipment;
+    
+    const isEquipped = Object.values(saveData.equippedItems || {}).some(e => e?.id === equipmentId);
+    const power = calculateEquipmentPower(equipment);
+    const enhanceLevel = equipment.enhanceLevel || 0;
+    const enhancePreview = getEnhancePreview(equipment);
+    
+    const panel = document.getElementById('equipment-detail-panel');
+    const content = document.getElementById('detail-content');
+    const actions = document.getElementById('detail-actions');
+    
+    content.innerHTML = `
+        <div class="flex items-start gap-3">
+            <div class="text-4xl" style="filter: drop-shadow(0 0 10px ${equipment.rarity.glowColor})">${equipment.icon}</div>
+            <div class="flex-1">
+                <div class="text-lg font-bold" style="color: ${equipment.rarity.color}; text-shadow: 0 0 10px ${equipment.rarity.glowColor}">
+                    ${equipment.name}${enhanceLevel > 0 ? ` <span class="text-yellow-400">+${enhanceLevel}</span>` : ''}
+                </div>
+                <div class="text-sm text-gray-400">${EQUIPMENT_SLOT[equipment.slot].name}</div>
+                <div class="text-xs text-gray-500 mt-1">来源: 第${equipment.sourceWave}波BOSS</div>
+            </div>
+            <div class="text-right">
+                <div class="text-xs text-gray-400">战力</div>
+                <div class="text-xl font-bold text-yellow-400">${power}</div>
+            </div>
+        </div>
+        
+        <div class="mt-3 space-y-1">
+            <div class="text-sm text-cyan-400 font-bold">基础属性</div>
+            ${Object.entries(equipment.stats || {}).map(([stat, value]) => `
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-gray-300">${EQUIPMENT_STATS[stat].icon} ${EQUIPMENT_STATS[stat].name}</span>
+                    <span class="text-cyan-300 font-bold">${EQUIPMENT_STATS[stat].format(value)}</span>
+                </div>
+            `).join('')}
+        </div>
+        
+        ${enhancePreview ? `
+            <div class="mt-3 p-2 ${enhancePreview.isQualityUpgrade ? 'bg-purple-900/30 border-purple-500/50' : 'bg-yellow-900/20 border-yellow-600/30'} border rounded">
+                <div class="text-sm text-yellow-400 font-bold mb-2">${enhancePreview.isQualityUpgrade ? `⬆️ 品质进阶 (${enhancePreview.nextRarity.nameCN})` : `⬆️ 强化预览 (+${enhancePreview.nextLevel})`}</div>
+                ${enhancePreview.isQualityUpgrade ? `
+                    <div class="text-xs text-gray-300 mb-2">装备强化到+10后可进阶品质！</div>
+                    <div class="text-xs text-yellow-400 mb-2">进阶后属性提升30%，并解锁新特效！</div>
+                    <div class="text-xs text-gray-400 mb-1">进阶后属性：</div>
+                    ${Object.entries(enhancePreview.previewStats).map(([stat, value]) => `
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-gray-500">${EQUIPMENT_STATS[stat].icon} ${EQUIPMENT_STATS[stat].name}</span>
+                            <span class="text-green-400">${EQUIPMENT_STATS[stat].format(value)}</span>
+                        </div>
+                    `).join('')}
+                ` : `
+                    <div class="text-xs text-gray-400 mb-1">强化后属性：</div>
+                    ${Object.entries(enhancePreview.previewStats).map(([stat, value]) => `
+                        <div class="flex justify-between items-center text-xs">
+                            <span class="text-gray-500">${EQUIPMENT_STATS[stat].icon} ${EQUIPMENT_STATS[stat].name}</span>
+                            <span class="text-green-400">${EQUIPMENT_STATS[stat].format(value)}</span>
+                        </div>
+                    `).join('')}
+                `}
+                <div class="mt-2 pt-2 border-t border-yellow-600/30 flex justify-between text-xs">
+                    <span class="text-gray-400">消耗: <span class="text-yellow-400 font-bold">${enhancePreview.cost}</span> 金币</span>
+                    <span class="text-gray-400">成功率: <span class="text-green-400">${enhancePreview.successRate}%</span></span>
+                </div>
+            </div>
+        ` : `
+            <div class="mt-3 p-2 bg-gray-900/50 border border-gray-600/30 rounded text-center">
+                <span class="text-gray-500 text-sm">✓ 已达最高强化等级</span>
+            </div>
+        `}
+        
+        ${equipment.effects && equipment.effects.length > 0 ? `
+            <div class="mt-3 space-y-1">
+                <div class="text-sm text-purple-400 font-bold">特殊效果</div>
+                ${equipment.effects.map(effectId => {
+                    const effect = EQUIPMENT_EFFECTS.common[effectId] || EQUIPMENT_EFFECTS.epic[effectId] || EQUIPMENT_EFFECTS.legendary[effectId];
+                    return effect ? `
+                        <div class="bg-purple-900/20 border border-purple-500/30 rounded p-2 text-sm">
+                            <span class="text-purple-300">${effect.icon} ${effect.name}</span>
+                            <div class="text-gray-400 text-xs mt-1">${effect.desc}</div>
+                        </div>
+                    ` : '';
+                }).join('')}
+            </div>
+        ` : ''}
+    `;
+    
+    actions.innerHTML = `
+        ${isEquipped ? `
+            <button class="btn !border-red-500 !text-red-400 hover:!bg-red-500 hover:!text-white text-sm py-2 px-4" onclick="unequipItem('${equipment.slot}')">卸下装备</button>
+            ${enhancePreview ? enhancePreview.isQualityUpgrade ? `
+                <button class="btn !border-purple-600 !text-purple-400 hover:!bg-purple-600 hover:!text-black text-sm py-2 px-4" onclick="upgradeEquipmentQuality('${equipment.id}')">品质进阶</button>
+            ` : `
+                <button class="btn !border-yellow-600 !text-yellow-400 hover:!bg-yellow-600 hover:!text-black text-sm py-2 px-4" onclick="enhanceEquipment('${equipment.id}')">强化</button>
+            ` : ''}
+            <button class="btn !border-green-600 !text-green-400 hover:!bg-green-600 hover:!text-black text-sm py-2 px-4" onclick="sellEquipment('${equipment.id}')">出售</button>
+        ` : `
+            <button class="btn text-sm py-2 px-4" onclick="equipItem('${equipment.id}')">装备</button>
+            ${enhancePreview ? enhancePreview.isQualityUpgrade ? `
+                <button class="btn !border-purple-600 !text-purple-400 hover:!bg-purple-600 hover:!text-black text-sm py-2 px-4" onclick="upgradeEquipmentQuality('${equipment.id}')">品质进阶</button>
+            ` : `
+                <button class="btn !border-yellow-600 !text-yellow-400 hover:!bg-yellow-600 hover:!text-black text-sm py-2 px-4" onclick="enhanceEquipment('${equipment.id}')">强化</button>
+            ` : ''}
+            <button class="btn !border-gray-500 !text-gray-400 hover:!bg-gray-500 hover:!text-white text-sm py-2 px-4" onclick="dismantleEquipment('${equipment.id}')">分解</button>
+            <button class="btn !border-green-600 !text-green-400 hover:!bg-green-600 hover:!text-black text-sm py-2 px-4" onclick="sellEquipment('${equipment.id}')">出售</button>
+        `}
+        <button class="btn !border-gray-600 !text-gray-500 text-sm py-2 px-4" onclick="hideEquipmentDetail()">关闭</button>
+    `;
+    
+    panel.classList.remove('hidden');
+}
+
+function hideEquipmentDetail() {
+    document.getElementById('equipment-detail-panel').classList.add('hidden');
+    selectedEquipmentItem = null;
+}
+
+function equipItem(equipmentId) {
+    const equipment = (saveData.equipmentInventory || []).find(e => e.id === equipmentId);
+    if (!equipment) return;
+    
+    const slot = equipment.slot;
+    const currentEquipped = saveData.equippedItems ? saveData.equippedItems[slot] : null;
+    
+    if (currentEquipped) {
+        if (!saveData.equipmentInventory) saveData.equipmentInventory = [];
+        if (saveData.equipmentInventory.length >= inventory.maxSlots) {
+            showFloatText(canvas?.width/2 || 400, canvas?.height/2 || 300, '背包已满!', '#ff4444');
+            return;
+        }
+        saveData.equipmentInventory.push(currentEquipped);
+    }
+    
+    if (!saveData.equippedItems) saveData.equippedItems = {};
+    saveData.equippedItems[slot] = equipment;
+    inventory.removeItem(equipmentId);
+    
+    recalculateEquipmentStats();
+    renderEquipmentScreen();
+    hideEquipmentDetail();
+    
+    AudioSys.play('level_up');
+    showFloatText(canvas?.width/2 || 400, canvas?.height/2 || 300, `装备 ${equipment.name}`, equipment.rarity.color);
+    saveGame();
+}
+
+function unequipItem(slotId) {
+    const equipped = saveData.equippedItems ? saveData.equippedItems[slotId] : null;
+    if (!equipped) return;
+    
+    if (!saveData.equipmentInventory) saveData.equipmentInventory = [];
+    if (saveData.equipmentInventory.length >= inventory.maxSlots) {
+        showFloatText(canvas?.width/2 || 400, canvas?.height/2 || 300, '背包已满!', '#ff4444');
+        return;
+    }
+    
+    saveData.equipmentInventory.push(equipped);
+    saveData.equippedItems[slotId] = null;
+    
+    recalculateEquipmentStats();
+    renderEquipmentScreen();
+    hideEquipmentDetail();
+    
+    AudioSys.play('ui_click');
+    saveGame();
+}
+
+function dismantleEquipment(equipmentId) {
+    const equipment = (saveData.equipmentInventory || []).find(e => e.id === equipmentId);
+    if (!equipment) return;
+    
+    const rewards = DISMANTLE_REWARDS[equipment.rarity.id] || DISMANTLE_REWARDS[0];
+    
+    saveData.gold = (saveData.gold || 0) + rewards.gold;
+    inventory.removeItem(equipmentId);
+    
+    saveData.dismantleCount = (saveData.dismantleCount || 0) + 1;
+    
+    renderEquipmentScreen();
+    hideEquipmentDetail();
+    
+    AudioSys.play('ui_click');
+    showFloatText(canvas?.width/2 || 400, canvas?.height/2 || 300, `分解获得 ${rewards.gold} 金币`, '#ffd700');
+    saveGame();
+}
+
+function enhanceEquipment(equipmentId) {
+    const allItems = [...(saveData.equipmentInventory || [])];
+    for (const slot of Object.keys(saveData.equippedItems || {})) {
+        const eq = saveData.equippedItems[slot];
+        if (eq) allItems.push(eq);
+    }
+    
+    const equipment = allItems.find(e => e.id === equipmentId);
+    if (!equipment) return;
+    
+    const currentLevel = equipment.enhanceLevel || 0;
+    const maxLevel = equipment.rarity.id === 3 ? 0 : 10;
+    
+    if (equipment.rarity.id === 3) {
+        showFloatText(canvas?.width/2 || 400, canvas?.height/2 || 300, '金色装备无法强化!', '#ff4444');
+        return;
+    }
+    
+    if (currentLevel >= maxLevel) {
+        showFloatText(canvas?.width/2 || 400, canvas?.height/2 || 300, '已达最高强化等级!', '#ff4444');
+        return;
+    }
+    
+    const cost = ENHANCE_CONFIG.getCost(currentLevel, equipment.rarity);
+    if ((saveData.gold || 0) < cost) {
+        showFloatText(canvas?.width/2 || 400, canvas?.height/2 || 300, '金币不足!', '#ff4444');
+        return;
+    }
+    
+    const successRate = ENHANCE_CONFIG.getSuccessRate(currentLevel);
+    const success = Math.random() < successRate;
+    
+    saveData.gold = (saveData.gold || 0) - cost;
+    
+    if (success) {
+        equipment.enhanceLevel = currentLevel + 1;
+        
+        for (const stat of Object.keys(equipment.stats)) {
+            equipment.stats[stat] = Math.floor(equipment.stats[stat] * (1 + ENHANCE_CONFIG.statBonusPerLevel));
+        }
+        
+        recalculateEquipmentStats();
+        renderEquipmentScreen();
+        showEquipmentDetail(equipmentId);
+        
+        AudioSys.play('level_up');
+        
+        showFloatText(canvas?.width/2 || 400, canvas?.height/2 || 300, `强化成功! +${equipment.enhanceLevel}`, '#00ff88');
+        if (equipment.enhanceLevel >= 5) {
+            createExplosion(canvas?.width/2, canvas?.height/2, '#ffd700', 30);
+        }
+        if (equipment.enhanceLevel === 10) {
+            showFloatText(canvas?.width/2 || 400, canvas?.height/2 || 300, '可进行品质进阶!', '#ffd700');
+            createExplosion(canvas?.width/2, canvas?.height/2, '#ffd700', 40);
+        }
+    } else {
+        AudioSys.play('ui_click');
+        showFloatText(canvas?.width/2 || 400, canvas?.height/2 || 300, '强化失败...', '#ff4444');
+        renderEquipmentScreen();
+        showEquipmentDetail(equipmentId);
+    }
+    
+    saveGame();
+}
+
+function upgradeEquipmentQuality(equipmentId) {
+    const allItems = [...(saveData.equipmentInventory || [])];
+    for (const slot of Object.keys(saveData.equippedItems || {})) {
+        const eq = saveData.equippedItems[slot];
+        if (eq) allItems.push(eq);
+    }
+    
+    const equipment = allItems.find(e => e.id === equipmentId);
+    if (!equipment) return;
+    
+    const currentLevel = equipment.enhanceLevel || 0;
+    if (currentLevel < 10) {
+        showFloatText(canvas?.width/2 || 400, canvas?.height/2 || 300, '装备必须强化到+10才能进阶品质!', '#ff4444');
+        return;
+    }
+    
+    if (equipment.rarity.id >= 3) {
+        showFloatText(canvas?.width/2 || 400, canvas?.height/2 || 300, '已达到最高品质!', '#ff4444');
+        return;
+    }
+    
+    const nextRarityId = equipment.rarity.id + 1;
+    const nextRarity = Object.values(EQUIPMENT_RARITY).find(r => r.id === nextRarityId);
+    if (!nextRarity) return;
+    
+    const cost = ENHANCE_CONFIG.qualityUpgrade.getUpgradeCost(equipment.rarity.id);
+    if ((saveData.gold || 0) < cost) {
+        showFloatText(canvas?.width/2 || 400, canvas?.height/2 || 300, '金币不足!', '#ff4444');
+        return;
+    }
+    
+    saveData.gold = (saveData.gold || 0) - cost;
+    
+    equipment.rarity = nextRarity;
+    equipment.enhanceLevel = 0;
+    
+    const namePrefixes = {
+        0: ['标准', '基础', '普通'],
+        1: ['强化', '改良', '精制'],
+        2: ['精英', '卓越', '史诗'],
+        3: ['传说', '神话', '永恒']
+    };
+    
+    equipment.name = equipment.name.replace(/(标准|基础|普通|强化|改良|精制|精英|卓越|史诗|传说|神话|永恒)/, '');
+    const prefix = namePrefixes[nextRarity.id][Math.floor(Math.random() * 3)];
+    equipment.name = prefix + equipment.name;
+    
+    for (const stat of Object.keys(equipment.stats)) {
+        equipment.stats[stat] = Math.floor(equipment.stats[stat] * (1 + ENHANCE_CONFIG.qualityUpgrade.statBonus));
+    }
+    
+    if (nextRarity.id >= 1) {
+        const newEffects = equipment.effects || [];
+        if (nextRarity.id === 1 && newEffects.length === 0) {
+            const commonEffects = Object.keys(EQUIPMENT_EFFECTS.common);
+            if (Math.random() < 0.3) {
+                newEffects.push(commonEffects[Math.floor(Math.random() * commonEffects.length)]);
+            }
+        } else if (nextRarity.id === 2 && newEffects.length < 2) {
+            const epicEffects = Object.keys(EQUIPMENT_EFFECTS.epic);
+            for (let i = newEffects.length; i < 2; i++) {
+                const effect = epicEffects[Math.floor(Math.random() * epicEffects.length)];
+                if (!newEffects.includes(effect)) {
+                    newEffects.push(effect);
+                }
+            }
+        } else if (nextRarity.id === 3 && newEffects.length < 3) {
+            const legendaryEffects = Object.keys(EQUIPMENT_EFFECTS.legendary);
+            for (let i = newEffects.length; i < 3; i++) {
+                const effect = legendaryEffects[Math.floor(Math.random() * legendaryEffects.length)];
+                if (!newEffects.includes(effect)) {
+                    newEffects.push(effect);
+                }
+            }
+        }
+        equipment.effects = newEffects;
+    }
+    
+    recalculateEquipmentStats();
+    renderEquipmentScreen();
+    showEquipmentDetail(equipmentId);
+    
+    AudioSys.play('level_up');
+    showFloatText(canvas?.width/2 || 400, canvas?.height/2 || 300, `品质进阶成功! ${nextRarity.nameCN}装备`, '#ffd700');
+    createExplosion(canvas?.width/2, canvas?.height/2, nextRarity.glowColor, 50);
+    
+    saveGame();
+}
+
+function getEquipmentSellPrice(equipment) {
+    const rarityMultiplier = {
+        0: 1,
+        1: 4,
+        2: 12,
+        3: 30
+    }[equipment.rarity.id] || 1;
+    
+    const levelMultiplier = 1 + (equipment.enhanceLevel || 0) * 0.15;
+    
+    const baseValue = 300;
+    
+    const power = calculateEquipmentPower(equipment);
+    const powerValue = Math.floor(power * 3);
+    
+    const effectBonus = (equipment.effects || []).length * 150;
+    
+    const waveBonus = Math.min(2, (equipment.wave || 1) * 0.02);
+    
+    const totalPrice = Math.floor((baseValue * rarityMultiplier * levelMultiplier * (1 + waveBonus)) + powerValue + effectBonus);
+    
+    return Math.max(100, totalPrice);
+}
+
+function sellEquipment(equipmentId) {
+    const allItems = [...(saveData.equipmentInventory || [])];
+    let isEquipped = false;
+    let equippedSlot = null;
+    
+    for (const slot of Object.keys(saveData.equippedItems || {})) {
+        const eq = saveData.equippedItems[slot];
+        if (eq && eq.id === equipmentId) {
+            isEquipped = true;
+            equippedSlot = slot;
+            allItems.push(eq);
+            break;
+        }
+    }
+    
+    const equipment = allItems.find(e => e.id === equipmentId);
+    if (!equipment) return;
+    
+    const sellPrice = getEquipmentSellPrice(equipment);
+    
+    if (isEquipped && equippedSlot) {
+        saveData.equippedItems[equippedSlot] = null;
+    } else {
+        const index = saveData.equipmentInventory.findIndex(e => e.id === equipmentId);
+        if (index !== -1) {
+            saveData.equipmentInventory.splice(index, 1);
+        }
+    }
+    
+    saveData.gold = (saveData.gold || 0) + sellPrice;
+    
+    recalculateEquipmentStats();
+    renderEquipmentScreen();
+    hideEquipmentDetail();
+    
+    AudioSys.play('ui_click');
+    showFloatText(canvas?.width/2 || 400, canvas?.height/2 || 300, `出售获得 ${sellPrice} 金币`, '#ffd700');
+    
+    saveGame();
+}
+
+function getEnhancePreview(equipment) {
+    const currentLevel = equipment.enhanceLevel || 0;
+    
+    if (equipment.rarity.id === 3) return null;
+    
+    if (currentLevel >= ENHANCE_CONFIG.maxLevel) {
+        if (equipment.rarity.id < 3) {
+            const nextRarityId = equipment.rarity.id + 1;
+            const nextRarity = Object.values(EQUIPMENT_RARITY).find(r => r.id === nextRarityId);
+            if (nextRarity) {
+                const cost = ENHANCE_CONFIG.qualityUpgrade.getUpgradeCost(equipment.rarity.id);
+                const previewStats = {};
+                for (const [stat, value] of Object.entries(equipment.stats)) {
+                    previewStats[stat] = Math.floor(value * (1 + ENHANCE_CONFIG.qualityUpgrade.statBonus));
+                }
+                return {
+                    cost,
+                    successRate: 100,
+                    nextRarity: nextRarity,
+                    previewStats,
+                    isQualityUpgrade: true
+                };
+            }
+        }
+        return null;
+    }
+    
+    const cost = ENHANCE_CONFIG.getCost(currentLevel, equipment.rarity);
+    const successRate = ENHANCE_CONFIG.getSuccessRate(currentLevel);
+    
+    const previewStats = {};
+    for (const [stat, value] of Object.entries(equipment.stats)) {
+        previewStats[stat] = Math.floor(value * (1 + ENHANCE_CONFIG.statBonusPerLevel));
+    }
+    
+    return {
+        cost,
+        successRate: Math.round(successRate * 100),
+        nextLevel: currentLevel + 1,
+        previewStats
+    };
+}
+
 function launchGame(isNew = false) { 
     if (saveData.firstTime) {
         document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
@@ -7720,7 +9672,7 @@ function startGameAfterGuide(isNew = false) {
     document.getElementById('hud-layer').style.display='block';
     document.getElementById('ultimate-hint').style.display = 'none';
     if (isNew) { saveData.usedSuperWeaponHint = false; }
-    activeBoss = null; const bossHudEl = document.getElementById('boss-hud'); if (bossHudEl) bossHudEl.style.display = 'none'; if (isNew) { player=new Player(currentShip); gameWave = 1; waveTimer = 0; freezeTimer = 0; isWaveBossActive = false; endlessEventTimer = 0; endlessNextEventTime = 30 + Math.random() * 30; enemies = []; activeProjectiles = []; pickups = []; runStats = { kills: 0, goldEarned: 0, hit: false }; ultEffectActive = null; ultEffectTimer = 0; ultEffectData = {}; berserkMode = false; berserkTimer = 0; invincibleMode = false; invincibleTimer = 1; } gameState='playing'; lastFrameTs = performance.now(); AudioSys.stopMusic(); AudioSys.playMusic('battle'); gameLoop(); }
+    activeBoss = null; const bossHudEl = document.getElementById('boss-hud'); if (bossHudEl) bossHudEl.style.display = 'none'; if (isNew) { player=new Player(currentShip); gameWave = 1; waveTimer = 0; freezeTimer = 0; isWaveBossActive = false; victoryCountdown = 0; victoryCountdownStart = 0; endlessEventTimer = 0; endlessNextEventTime = 30 + Math.random() * 30; enemies = []; activeProjectiles = []; pickups = []; runStats = { kills: 0, goldEarned: 0, hit: false }; ultEffectActive = null; ultEffectTimer = 0; ultEffectData = {}; berserkMode = false; berserkTimer = 0; invincibleMode = false; invincibleTimer = 1; } gameState='playing'; lastFrameTs = performance.now(); AudioSys.stopMusic(); AudioSys.playMusic('battle'); gameLoop(); }
 function showGuide() { document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active')); document.getElementById('guide-screen').classList.add('active'); switchTab('weapons'); }
 function setVolume(v) { settings.volume=v/100; AudioSys.setVolume(settings.volume); } 
 function setSpeed(v) { settings.speed=v/100; document.getElementById('speed-display').innerText=settings.speed.toFixed(1)+'x'; }
@@ -7764,7 +9716,83 @@ function setDamageFloatEnabled(enabled) {
     }
 }
 
-function switchTab(tab) { AudioSys.play('ui_click'); document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); const buttons = document.getElementsByClassName('tab-btn'); for (let i = 0; i < buttons.length; i++) if (buttons[i].getAttribute('onclick') === `switchTab('${tab}')`) buttons[i].classList.add('active'); const container = document.getElementById('guide-content'); container.innerHTML = ''; let data = []; if (tab === 'ships') Object.keys(SHIPS).forEach(k => data.push({icon:'✈️', title:SHIPS[k].name, desc:t(SHIPS[k].descKey), color:SHIPS[k].color})); else if (tab === 'enemies') Object.keys(TEXTS).filter(k=>k.startsWith('enemy_')).forEach(k => data.push({icon:'👾', title:t(k).split(':')[0], desc:t(k), color:'#ff0055'})); else if (tab === 'weapons') Object.keys(WEAPONS).forEach(k => data.push({icon: ICONS[k] || '🔫', title:t(WEAPONS[k].nameKey), desc:t(WEAPONS[k].descKey), color:WEAPONS[k].color})); else if (tab === 'passives') UPGRADE_POOL.filter(i => i.type === 'passive').forEach(p => data.push({ icon: ICONS[p.id] || '🔹', title: t(p.nameKey), desc: t(p.descKey), color:'#00ffaa' })); else if (tab === 'evolution') Object.keys(WEAPONS).forEach(k => { let w = WEAPONS[k]; if (!w.passive || !w.evo) return; let p = UPGRADE_POOL.find(u => u.id === w.passive); let e = EVOLUTIONS[w.evo]; if (!p || !e) return; data.push({ icon: '🔄', title: `<span class="text-cyan-300">${t(w.nameKey)}</span> + <span class="text-yellow-300">${ICONS[p.id]} ${t(p.nameKey)}</span>`, desc: `<div class="mt-1 text-purple-400 font-bold" style="text-shadow:0 0 5px #d500f9">⬇️ 合成: ${ICONS[w.evo]} ${t(e.nameKey)}</div><div class="text-xs text-gray-400 mt-1">${t(e.descKey)}</div>`, isHtml: true, color:'#d500f9' }); }); else if (tab === 'pickups') Object.keys(PICKUP_INFO).forEach(k => { let p = PICKUP_INFO[k]; data.push({ icon: p.icon, title: p.name, desc: `<div class="text-gray-300">${p.desc}</div><div class="text-cyan-400 text-xs mt-1">${p.usage}</div>${p.highlight ? `<div class="text-yellow-400 text-xs mt-1 font-bold">${p.highlight}</div>` : ''}`, isHtml: true, color: k === 'xp' ? '#00ff00' : k === 'gold' ? '#ffea00' : k === 'heal' ? '#ff4444' : k === 'level_up_item' ? '#ffea00' : '#00e5ff' }); }); data.forEach(item => { container.innerHTML += `<div class="guide-item" style="display:flex; gap:15px; margin-bottom:12px; padding:12px; background:rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); align-items:center; border-radius:4px;"><div class="guide-icon text-3xl" style="color:${item.color}; filter:drop-shadow(0 0 8px ${item.color})">${item.icon}</div>${item.isHtml ? `<div class="flex-1"><div class="font-bold text-white text-sm mb-1">${item.title}</div>${item.desc}</div>` : `<div class="flex-1"><div class="font-bold text-lg mb-1" style="color:${item.color}; text-shadow:0 0 5px ${item.color}">${item.title}</div><div class="text-xs text-gray-400 leading-relaxed">${item.desc}</div></div>`}</div>`; }); }
+function switchTab(tab) { 
+    AudioSys.play('ui_click'); 
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active')); 
+    const buttons = document.getElementsByClassName('tab-btn'); 
+    for (let i = 0; i < buttons.length; i++) 
+        if (buttons[i].getAttribute('onclick') === `switchTab('${tab}')`) buttons[i].classList.add('active'); 
+    const container = document.getElementById('guide-content'); 
+    container.innerHTML = ''; 
+    let data = []; 
+    if (tab === 'ships') Object.keys(SHIPS).forEach(k => data.push({icon:'✈️', title:SHIPS[k].name, desc:t(SHIPS[k].descKey), color:SHIPS[k].color})); 
+    else if (tab === 'enemies') Object.keys(TEXTS).filter(k=>k.startsWith('enemy_')).forEach(k => data.push({icon:'👾', title:t(k).split(':')[0], desc:t(k), color:'#ff0055'})); 
+    else if (tab === 'weapons') Object.keys(WEAPONS).forEach(k => data.push({icon: ICONS[k] || '🔫', title:t(WEAPONS[k].nameKey), desc:t(WEAPONS[k].descKey), color:WEAPONS[k].color})); 
+    else if (tab === 'passives') UPGRADE_POOL.filter(i => i.type === 'passive').forEach(p => data.push({ icon: ICONS[p.id] || '🔹', title: t(p.nameKey), desc: t(p.descKey), color:'#00ffaa' })); 
+    else if (tab === 'evolution') Object.keys(WEAPONS).forEach(k => { let w = WEAPONS[k]; if (!w.passive || !w.evo) return; let p = UPGRADE_POOL.find(u => u.id === w.passive); let e = EVOLUTIONS[w.evo]; if (!p || !e) return; data.push({ icon: '🔄', title: `<span class="text-cyan-300">${t(w.nameKey)}</span> + <span class="text-yellow-300">${ICONS[p.id]} ${t(p.nameKey)}</span>`, desc: `<div class="mt-1 text-purple-400 font-bold" style="text-shadow:0 0 5px #d500f9">⬇️ 合成: ${ICONS[w.evo]} ${t(e.nameKey)}</div><div class="text-xs text-gray-400 mt-1">${t(e.descKey)}</div>`, isHtml: true, color:'#d500f9' }); }); 
+    else if (tab === 'pickups') Object.keys(PICKUP_INFO).forEach(k => { let p = PICKUP_INFO[k]; data.push({ icon: p.icon, title: p.name, desc: `<div class="text-gray-300">${p.desc}</div><div class="text-cyan-400 text-xs mt-1">${p.usage}</div>${p.highlight ? `<div class="text-yellow-400 text-xs mt-1 font-bold">${p.highlight}</div>` : ''}`, isHtml: true, color: k === 'xp' ? '#00ff00' : k === 'gold' ? '#ffea00' : k === 'heal' ? '#ff4444' : k === 'level_up_item' ? '#ffea00' : '#00e5ff' }); }); 
+    else if (tab === 'equipment') {
+        data.push({ 
+            icon: '📦', 
+            title: '装备系统概述', 
+            desc: `<div class="text-gray-300 mb-2">击败BOSS可获取装备，装备可大幅提升机体属性。</div>
+                   <div class="text-cyan-400 text-xs">• 装备部位：核心引擎、装甲板、武器挂载、推进器、传感器、扩展模块</div>
+                   <div class="text-cyan-400 text-xs">• 装备品质：白色(普通) → 绿色(稀有) → 红色(史诗) → 金色(传说)</div>
+                   <div class="text-yellow-400 text-xs mt-1">💡 提示：高品质装备拥有更强属性和特殊效果！</div>`, 
+            isHtml: true, 
+            color: '#ffd700' 
+        });
+        Object.keys(EQUIPMENT_SLOT).forEach(slotId => {
+            const slot = EQUIPMENT_SLOT[slotId];
+            const statInfo = {
+                core: '主要提升：攻击力、冷却缩减、暴击率',
+                armor: '主要提升：生命值、护盾值、攻击力',
+                weapon_slot: '主要提升：攻击力、暴击率、暴击伤害',
+                thruster: '主要提升：移动速度、拾取范围、生命值',
+                sensor: '主要提升：拾取范围、暴击率、金币/经验加成',
+                module: '综合提升：攻击力、生命值、速度、金币/经验加成'
+            };
+            data.push({ 
+                icon: slot.icon, 
+                title: slot.name, 
+                desc: `<div class="text-gray-300 mb-1">${slot.desc}</div>
+                       <div class="text-cyan-400 text-xs">${statInfo[slotId]}</div>
+                       <div class="text-purple-400 text-xs mt-1">获取途径：击败BOSS随机掉落</div>`, 
+                isHtml: true, 
+                color: '#00e5ff' 
+            });
+        });
+        data.push({ 
+            icon: '⭐', 
+            title: '装备品质说明', 
+            desc: `<div class="space-y-2">
+                <div class="flex items-center gap-2"><span class="text-gray-400">⚪ 白色(普通)</span><span class="text-xs text-gray-500">- 基础属性，无特效</span></div>
+                <div class="flex items-center gap-2"><span class="text-green-400">🟢 绿色(稀有)</span><span class="text-xs text-gray-500">- 较高属性，30%概率附带1个普通特效</span></div>
+                <div class="flex items-center gap-2"><span class="text-red-400">🔴 红色(史诗)</span><span class="text-xs text-gray-500">- 高属性，必定附带1-2个高级特效</span></div>
+                <div class="flex items-center gap-2"><span class="text-yellow-400">🟡 金色(传说)</span><span class="text-xs text-yellow-400 font-bold">- 唯一获取：红色装备+10强化升级！</span></div>
+            </div>
+            <div class="mt-2 p-2 bg-yellow-900/30 border border-yellow-500/50 rounded text-xs">
+                <div class="text-yellow-400 font-bold">💡 金色装备获取方式</div>
+                <div class="text-gray-300 mt-1">将红色装备强化至+10后，可免费升级为金色装备</div>
+                <div class="text-gray-500 mt-1">金色装备无法通过BOSS掉落获得</div>
+            </div>`, 
+            isHtml: true, 
+            color: '#ffea00' 
+        });
+        data.push({ 
+            icon: '✨', 
+            title: '特殊效果一览', 
+            desc: `<div class="space-y-1 text-xs">
+                <div class="text-green-400">【普通】灼热触感、冰霜涂层、纳米修复、推进增强、财富感知</div>
+                <div class="text-red-400">【高级】连锁闪电、吸血核心、反射护盾、过载模式、相位转移</div>
+                <div class="text-yellow-400">【稀有】不死鸟之心、时间扭曲、量子分裂、虚空吸收、星怒、命运链接</div>
+            </div>`, 
+            isHtml: true, 
+            color: '#b388ff' 
+        });
+    }
+    data.forEach(item => { container.innerHTML += `<div class="guide-item" style="display:flex; gap:15px; margin-bottom:12px; padding:12px; background:rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); align-items:center; border-radius:4px;"><div class="guide-icon text-3xl" style="color:${item.color}; filter:drop-shadow(0 0 8px ${item.color})">${item.icon}</div>${item.isHtml ? `<div class="flex-1"><div class="font-bold text-white text-sm mb-1">${item.title}</div>${item.desc}</div>` : `<div class="flex-1"><div class="font-bold text-lg mb-1" style="color:${item.color}; text-shadow:0 0 5px ${item.color}">${item.title}</div><div class="text-xs text-gray-400 leading-relaxed">${item.desc}</div></div>`}</div>`; }); 
+}
 
 function triggerBombUI() { 
     if(player.bombCharge >= player.bombMax){ 
